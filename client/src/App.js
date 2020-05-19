@@ -7,7 +7,9 @@ import { BrowserRouter as Router } from 'react-router-dom';
 //load the logo image into a variable
 //import logo from './logo.svg';
 //load the css here
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+
 
 //import components
 import { MasterPage } from './components/MasterPage';

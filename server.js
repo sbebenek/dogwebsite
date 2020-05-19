@@ -1,13 +1,16 @@
 //basic express app - source https://dev.to/nburgess/creating-a-react-app-with-react-router-and-an-express-backend-33l3
 //an express app interfaces with the database by handling api requests
 //import mysql when you want to use that
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const mysql = require("mysql");
 const bodyParser = require("body-parser");
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(bodyParser.json());
+app.use(express.json());
 
 
 //MYSQL CONNECTION DONE HERE - source https://www.youtube.com/watch?v=xn9ef5pod18&list=LLi27Shmiim3B-lLFh8XjLTQ&index=2
@@ -54,9 +57,15 @@ app.get('/api/dogs/list', (req, res) => {
 });
 
 //api endpoint that adds a dog to the database
-app.post('/api/dogs/add', (req, res) => {
+//FIXME: this endpoint will only add a dog if the user has an authenticated token. Once JWT is added as a cookie, send that JWT cookie in the body of the request
+app.post('/api/dogs/add', authenticateToken, (req, res) => {
     console.log("-----");
-    console.log("Data was just received by the server: Add Dog post data")
+    console.log("Data was just received by the server: Add Dog post data");
+    if (req.id === null) { //if there somehow was no id in the JWT token or if the JWT token was never set and the code somehow reached here, return 401
+        return res.status(401).send({
+            message: 'Invalid or missing authentication token'
+        });
+    }
     //POST Parameters are grabbed using req.body.variable_name
     let body = req.body;
     let name = body.name, breed = body.breed, gender = body.gender, age = body.age, weight = body.weight, color = body.color;
@@ -101,7 +110,8 @@ app.get('/api/dogs/:id', (req, res) => {
                 console.log(result);
                 res.status(400).json({
                     '': ''
-                });            }
+                });
+            }
             else {
                 res.json(result);
                 console.log("Sent dog entry with the id: " + req.params.id);
@@ -134,7 +144,7 @@ app.put('/api/dogs/update/:id', (req, res) => {
     ], (err, result, fields) => {
         if (!err) {
             res.send("success");
-            console.log("Dog entry at id "+ id +" was successfully updated to the database with these values: " + name + ', ' + breed + ', ' + gender + ', ' + age + ', ' + weight + ', ' + color);
+            console.log("Dog entry at id " + id + " was successfully updated to the database with these values: " + name + ', ' + breed + ', ' + gender + ', ' + age + ', ' + weight + ', ' + color);
         }
         else {
             res.send(err);
@@ -164,7 +174,8 @@ app.delete('/api/dogs/delete/:id', (req, res) => {
                 console.log(result);
                 res.status(400).json({
                     '': ''
-                });            }
+                });
+            }
             else {
                 res.json(result);
                 console.log("Deleted dog entry with the id: " + req.params.id);
@@ -192,6 +203,12 @@ app.post('/api/accounts/signin', (req, res) => {
         });
     }
     //else, id is valid
+
+    /**
+     * JWT Token creation and refresh - https://www.youtube.com/watch?v=mbsmsi7l3r4
+     * STEPS:
+     * 1. authenticate user by comparing username and password to entries in the database
+     */
     mysqlConnection.query("SELECT * FROM accounts WHERE accountusername = ? AND accountpassword = ?", [
         req.body.username,
         req.body.password
@@ -200,18 +217,24 @@ app.post('/api/accounts/signin', (req, res) => {
             if (result.length === 0) {
                 console.log("No entry with that username and password found.");
                 console.log(result);
-                res.json(result);            
+                res.json(result);
             }
             else {
-                const data = {
+                const user = {
                     id: result[0].accountid,
                     username: result[0].accountusername,
                     isadmin: result[0].accountisadmin
                 }
-                
-                res.json(data);
+
+                //creating the jwt token
+                const jwtToken = generateAccessToken(user);
+                const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET); // TODO: add the refresh token to a database, to prove that the refresh token exists
+                user.jwtToken = jwtToken;
+                user.refreshToken = refreshToken;
+
+                res.json(user);
                 console.log("Sent account entry with the username: " + req.body.username);
-                console.log("Sending this data: " + data.username + ", " + data.isadmin);
+                console.log("Sending this data: " + user.username + ", " + user.isadmin);
             }
         }
         else {
@@ -221,11 +244,86 @@ app.post('/api/accounts/signin', (req, res) => {
     });
 });
 
+/**
+ * authorize that a given JWT token indicates that a authenticated user is an admin
+ */
+app.post('/api/accounts/admin',  authenticateToken, (req, res) => {
+    if (userIsAdmin(req) === true)
+    {
+        res.status(200);
+    }
+    else res.status(401);
+});
+
+//if on the front end a token check determines that a token is expired, call this endpoint with the refresh token in the body as 'token'
+app.post('/api/accounts/token', (req, res) => {
+    const refreshToken = req.body.token;
+    if (refreshToken == null) { return res.sendStatus(401); }
+    //TODO: check if the refresh token exists on the database. If it doesnt, return 403
+    //else, it exists on the database and is a valid refresh token
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+        if (err) { return res.sendStatus(403); }
+        const accessToken = generateAccessToken({id: user.id, username: user.username, isadmin: user.isadmin }); //generate a new token with all the same parameters as the old token
+        res.json();
+    })
+});
+
+app.delete('/api/accounts/signout', (req, res) => {
+    //TODO: remove the given refresh token from the refresh token database. On the front end, delete the state variables and jwt cookie
+    res.sendStatus(204);
+});
+
+
+
+//********************************************************************************************************************************************************************************/
+//***************************************************                     EVERYTHING ELSE                           **************************************************************/
+//********************************************************************************************************************************************************************************/
 
 // Handles any requests that don't match the ones above -- only viewable once react app is built for production deployment
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname + '/client/build/index.html'));
 });
+
+
+//******** AUTHENTICATION MIDDLEWARE - authenticates a given token */
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization']; // this header will have the format 'Bearer TOKEN'
+    const token = authHeader && authHeader.split(' ')[1]; //if the header doesn't exist, return as undefined. If it does, return the token
+    if (token == null) {
+        return res.sendStatus(401); //this is the part that might not work...
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, id, username, isadmin) => {
+        if (err) { return res.sendStatus(403) } //a token exists, but it has expired and is no longer valid
+        req.id = id; //add a field to the request containing the user id
+        req.isadmin = isadmin;
+        next(); //move on from the middleware
+    });
+}
+
+/**
+ * Generates a JWT token with the given user object
+ * @param {Object} user 
+ * @returns {String} token
+ */
+function generateAccessToken(user) {
+    //i want my token to contain user id, username, and isadmin
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '60m' }); //token expires in 1 hour
+
+}
+
+/**
+ * determines if a user is an admin if the req contains a 'isadmin' field
+ * @param req
+ * @returns {boolean} isAdmin
+ */
+function userIsAdmin(req) {
+    if (req.isadmin !== null && req.isadmin === 1) {
+        return true;
+    }
+    else return false;
+}
+
 
 const port = process.env.PORT || 5000;
 app.listen(port);

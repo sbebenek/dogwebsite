@@ -1,4 +1,5 @@
 import React from 'react';
+import { Redirect } from 'react-router-dom';
 
 //global variables
 
@@ -10,7 +11,7 @@ export class SignIn extends React.Component {
         this.state = {
             username: '',
             password: '',
-            redirectToHome: false,
+            redirectToHome: '',
             errorMessage: ''
         };
 
@@ -71,12 +72,16 @@ export class SignIn extends React.Component {
                 else {
                     console.log("Username/password combo found!");
                     this.setState({errorMessage: "Welcome, " + result.username + "!"});
+                    //TODO: store the jwt token and refresh tokens as cookies, store the result fields as state variables in MasterPage.js, then redirect to home
+                    document.cookie = "username="+result.username+";max-age=2592000";
+                    document.cookie = "jwtToken="+result.jwtToken+";max-age=2592000";
+                    document.cookie = "refreshToken="+result.refreshToken+";max-age=2592000";
+                    console.log("Cookie from sign in: "+document.cookie);
+                    this.setState({ redirectToHome: <Redirect to='/' /> });
                 }
             }).catch(function (err) {
                 console.log(err);
             });
-
-            //this.setState({ redirectToHome: true });
         }
 
     }
@@ -84,6 +89,7 @@ export class SignIn extends React.Component {
     render() {
         return (
             <div>
+                {this.state.redirectToHome}
                 <h1>Sign In</h1>
                 <p id="loginError"></p>
                 {/*noValidate allows you to automatically check if form fields are empty*/}

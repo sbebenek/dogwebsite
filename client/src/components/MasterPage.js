@@ -28,43 +28,77 @@ export class MasterPage extends React.Component {
         this.state = {
             isLoggedIn: false,
             userId: null,
-            username: null 
+            username: null
             //TODO: set to null on logout
         }
     }
+    componentWillMount() {
+        //TODO: check for a JWT authentication token, if it exists validate it using an api call, if it is still valid, set state variables (store the cookie as ssl)
+    }
+
     //runs after rendering is done
     componentDidMount() {
         console.log("page is done rendering");
     }
 
+    checkCookies() {
+        //if a cookie exists and contains the correct values
+        if (document.cookie !== null && getCookie("username") !== '' && getCookie("jwtToken") !== '' && getCookie("refreshToken") !== '') {
+            console.log("username from cookie: " + getCookie("username"));
+            console.log("jwttoken from cookie: " + getCookie("jwtToken"));
+            console.log("refreshtoken from cookie: " + getCookie("refreshToken"));
+        }
+        else console.log("no cookies with the correct values!");
+    }
+
     render() {
+        { this.checkCookies() }
         return (
             <Router>
 
                 <WebsiteHeader />
-                <Switch>
-                    {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
+                <div className="page-wrapper">
+                    <Switch>
+                        {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
                     </Route>*/}
-                    <Route exact path="/dogs" component={withRouter(List)}>
-                    </Route>
-                    <Route exact path="/dogs/add" component={withRouter(Add)}>
-                    </Route>
-                    <Route exact path="/dogs/update/:id" component={withRouter(Update)}>
-                    </Route>
-                    <Route exact path="/contact">
-                        <Contact />
-                    </Route>
-                    <Route exact path="/signin">
-                        <SignIn />
-                    </Route>
-                    <Route path="/" exact>
-                        <Home />
-                    </Route>
-                    <Route component={NoMatch} />
-                </Switch>
+                        <Route exact path="/dogs" component={withRouter(List)}>
+                        </Route>
+                        <Route exact path="/dogs/add" component={withRouter(Add)}>
+                        </Route>
+                        <Route exact path="/dogs/update/:id" component={withRouter(Update)}>
+                        </Route>
+                        <Route exact path="/contact">
+                            <Contact />
+                        </Route>
+                        <Route exact path="/signin">
+                            <SignIn />
+                        </Route>
+                        <Route path="/" exact>
+                            <Home />
+                        </Route>
+                        <Route component={NoMatch} />
+                    </Switch>
+                </div>
 
             </Router>
         )
     }
 
 }
+
+//TODO: move this outside into a helper class
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
