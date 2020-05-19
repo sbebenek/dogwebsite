@@ -3,6 +3,45 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export class WebsiteHeader extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            username: this.props.username,
+            signInHolder: '',
+            redirectHome: ''
+        }
+        this.signOut = this.signOut.bind(this);
+    }
+    
+
+    componentDidMount() {
+        console.log("header did mount - username: " + this.state.username)
+        //if the username prop is empty, then no one is logged in - display sign in button 
+        if (this.state.username === null) {
+            this.setState({ signInHolder: <Link to="/signin"><button className="btn btn-outline-light my-2 my-sm-0">Sign In</button></Link> });
+        }
+        else {
+            //TODO: set the username to be a dropdown menu instead of having the sign out button
+            this.setState({
+                signInHolder: (
+                    <div className="form-inline">
+                        <p className="nav-link custom-nav-item my-auto">{this.state.username}</p>
+                        <button onClick={this.signOut} className="btn btn-outline-light my-2 my-sm-0 btn-sm">Sign Out</button>
+                    </div>
+                )
+            });
+        }
+    }
+
+    signOut() {
+        //do the logout api call to delete your refresh key - TODO: store refresh keys
+        //then delete the cookies
+        //then erase the MasterPage's username state TODO: store the parent component as a prop in this one
+        //then redirect to the home page
+        this.setState({redirectHome: ''});
+        console.log("You have signed out!");
+    }
+
     render() {
         return (
             <header>
@@ -28,7 +67,7 @@ export class WebsiteHeader extends React.Component {
                         </ul>
 
                         {/* This is where it will check for props, and display username and a dropdown menu if signed in */}
-                        <Link to="/signin"><button className="btn btn-outline-light my-2 my-sm-0">Sign In</button></Link>
+                        {this.state.signInHolder}
 
                     </div>
                 </nav>

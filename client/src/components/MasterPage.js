@@ -26,13 +26,13 @@ export class MasterPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isLoggedIn: false,
-            userId: null,
             username: null
             //TODO: set to null on logout
         }
     }
     componentWillMount() {
+        this.checkCookies();
+
         //TODO: check for a JWT authentication token, if it exists validate it using an api call, if it is still valid, set state variables (store the cookie as ssl)
     }
 
@@ -47,16 +47,16 @@ export class MasterPage extends React.Component {
             console.log("username from cookie: " + getCookie("username"));
             console.log("jwttoken from cookie: " + getCookie("jwtToken"));
             console.log("refreshtoken from cookie: " + getCookie("refreshToken"));
+            this.setState({username: getCookie("username")});
         }
         else console.log("no cookies with the correct values!");
     }
 
     render() {
-        { this.checkCookies() }
         return (
             <Router>
 
-                <WebsiteHeader />
+                <WebsiteHeader username={this.state.username}/>
                 <div className="page-wrapper">
                     <Switch>
                         {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
