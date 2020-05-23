@@ -1,46 +1,58 @@
 import React from 'react';
 //import the react routing functionality - source: https://reacttraining.com/react-router/web/guides/quick-start
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
 export class WebsiteHeader extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             username: this.props.username,
-            signInHolder: '',
-            redirectHome: ''
+            redirectHome: '',
+            signInHolder: <Link to="/signin"><button className="btn btn-outline-light my-2 my-sm-0">Sign In</button></Link>
         }
-        this.signOut = this.signOut.bind(this);
+        this.updateSignInButtonArea = this.updateSignInButtonArea.bind(this);
+
     }
-    
+
 
     componentDidMount() {
-        console.log("header did mount - username: " + this.state.username)
+        console.log("header did mount - username: " + this.state.username);
+        this.updateSignInButtonArea(this.props.username);
+
+    }
+
+    //will call whenever new props are received
+    componentDidUpdate(prevProps) {
+        console.log("WebsiteHeader received new props!");
+        // Typical usage (don't forget to compare props):
+        if (this.props.username !== prevProps.username) {
+            console.log("The new prop was different from the old one - new username: " + this.props.username)
+            this.setState({ username: this.props.username });
+            this.updateSignInButtonArea(this.props.username);
+        }
+    }
+
+    updateSignInButtonArea(newUsername) {
+        console.log("drawing sign in button area based on state...")
         //if the username prop is empty, then no one is logged in - display sign in button 
-        if (this.state.username === null) {
+        if (newUsername === null) {
+            console.log("username is null. drawing sign in button...");
             this.setState({ signInHolder: <Link to="/signin"><button className="btn btn-outline-light my-2 my-sm-0">Sign In</button></Link> });
         }
         else {
+            console.log("username is not null. drawing sign out button...");
             //TODO: set the username to be a dropdown menu instead of having the sign out button
             this.setState({
                 signInHolder: (
                     <div className="form-inline">
-                        <p className="nav-link custom-nav-item my-auto">{this.state.username}</p>
-                        <button onClick={this.signOut} className="btn btn-outline-light my-2 my-sm-0 btn-sm">Sign Out</button>
+                        <p className="nav-link custom-nav-item my-auto">{newUsername}</p>
+                        <button onClick={this.props.signout} className="btn btn-outline-light my-2 my-sm-0 btn-sm">Sign Out</button>
                     </div>
                 )
             });
         }
     }
 
-    signOut() {
-        //do the logout api call to delete your refresh key - TODO: store refresh keys
-        //then delete the cookies
-        //then erase the MasterPage's username state TODO: store the parent component as a prop in this one
-        //then redirect to the home page
-        this.setState({redirectHome: ''});
-        console.log("You have signed out!");
-    }
 
     render() {
         return (
@@ -76,3 +88,5 @@ export class WebsiteHeader extends React.Component {
         );
     }
 }
+
+

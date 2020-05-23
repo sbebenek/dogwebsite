@@ -1,7 +1,7 @@
 //import React
 import React from 'react';
 //import the react routing functionality - source: https://reacttraining.com/react-router/web/guides/quick-start
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom';
 import { withRouter } from 'react-router'
 
 
@@ -26,9 +26,14 @@ export class MasterPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            username: null
+            username: null,
             //TODO: set to null on logout
+            redirectHome: ''
         }
+        this.signOut = this.signOut.bind(this);
+        this.deleteCookies = this.deleteCookies.bind(this);
+        this.checkCookies = this.checkCookies.bind(this);
+
     }
     componentWillMount() {
         this.checkCookies();
@@ -47,16 +52,38 @@ export class MasterPage extends React.Component {
             console.log("username from cookie: " + getCookie("username"));
             console.log("jwttoken from cookie: " + getCookie("jwtToken"));
             console.log("refreshtoken from cookie: " + getCookie("refreshToken"));
-            this.setState({username: getCookie("username")});
+            this.setState({ username: getCookie("username") });
         }
-        else console.log("no cookies with the correct values!");
+        else {
+            console.log("no cookies with the correct values!");
+            this.setState({ username: null });
+        }
+
+    }
+    deleteCookies() {
+        console.log("deleting cookies...")
+        document.cookie = 'username' + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'jwttoken' + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'refreshtoken' + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+
+
+    signOut() {
+        //do the logout api call to delete your refresh key - TODO: store refresh keys
+        //then delete the cookies
+        //then erase the MasterPage's username state TODO: store the parent component as a prop in this one
+        //then redirect to the home page
+        this.setState({ username: null, redirectHome: <Redirect to='/?signout=true' /> });
+        console.log("You have signed out!");
+        this.deleteCookies();
+        //document.location("/");
     }
 
     render() {
         return (
             <Router>
 
-                <WebsiteHeader username={this.state.username}/>
+                <WebsiteHeader username={this.state.username} signout={this.signOut} />
                 <div className="page-wrapper">
                     <Switch>
                         {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
@@ -70,8 +97,9 @@ export class MasterPage extends React.Component {
                         <Route exact path="/contact">
                             <Contact />
                         </Route>
-                        <Route exact path="/signin">
-                            <SignIn />
+                        <Route exact path="/signin" render={(props) => (
+                            <SignIn {...props} signin={this.checkCookies} />
+                        )} >
                         </Route>
                         <Route path="/" exact>
                             <Home />
@@ -91,14 +119,14 @@ function getCookie(cname) {
     var name = cname + "=";
     var decodedCookie = decodeURIComponent(document.cookie);
     var ca = decodedCookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
     }
     return "";
-  }
+}

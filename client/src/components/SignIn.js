@@ -77,6 +77,7 @@ export class SignIn extends React.Component {
                     document.cookie = "jwtToken="+result.jwtToken+";max-age=2592000";
                     document.cookie = "refreshToken="+result.refreshToken+";max-age=2592000";
                     console.log("Cookie from sign in: "+document.cookie);
+                    this.props.signin();
                     this.setState({ redirectToHome: <Redirect to='/' /> });
                 }
             }).catch(function (err) {
