@@ -9,6 +9,7 @@ export class SignIn extends React.Component {
         //the proper way to handle forms in react is save every form element as a state variable, change the states on input change, and handle validation on a onSubmit function
         super(props);
         this.state = {
+            signedInUsername: this.props.username,
             username: '',
             password: '',
             redirectToHome: '',
@@ -17,7 +18,26 @@ export class SignIn extends React.Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.checkIfSignedIn = this.checkIfSignedIn.bind(this);
 
+    }
+
+    //if a user is signed in, signedInUsername will not be null
+    checkIfSignedIn() {
+        if(this.state.signedInUsername !== null)
+        {
+            this.setState({ redirectToHome: <Redirect to='/' /> });
+        }
+    }
+
+    //will call whenever new props are received
+    componentDidUpdate(prevProps) {
+        console.log("SignIn Page received new props!");
+        // Typical usage (don't forget to compare props):
+        if (this.props.username !== prevProps.username) {
+            console.log("The new prop was different from the old one - new username: " + this.props.username)
+            this.setState({ signedInUsername: this.props.username });
+        }
     }
 
     handleChange(e) {
@@ -71,9 +91,11 @@ export class SignIn extends React.Component {
                 }
                 else {
                     console.log("Username/password combo found!");
+                    console.log("Result: " + result)
                     this.setState({errorMessage: "Welcome, " + result.username + "!"});
                     //TODO: store the jwt token and refresh tokens as cookies, store the result fields as state variables in MasterPage.js, then redirect to home
                     document.cookie = "username="+result.username+";max-age=2592000";
+                    document.cookie = "isadmin="+result.isadmin+";max-age=2592000";
                     document.cookie = "jwtToken="+result.jwtToken+";max-age=2592000";
                     document.cookie = "refreshToken="+result.refreshToken+";max-age=2592000";
                     console.log("Cookie from sign in: "+document.cookie);
@@ -88,6 +110,7 @@ export class SignIn extends React.Component {
     }
 
     render() {
+        {this.checkIfSignedIn()}
         return (
             <div>
                 {this.state.redirectToHome}

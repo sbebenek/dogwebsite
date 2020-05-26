@@ -9,6 +9,7 @@ export class Update extends React.Component {
         //the proper way to handle forms in react is save every form element as a state variable, change the states on input change, and handle validation on a onSubmit function
         super(props);
         this.state = {
+            isAdmin: parseInt(this.props.isAdmin),
             id: '',
             name: '',
             breed: '',
@@ -34,11 +35,31 @@ export class Update extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.successMessage = this.successMessage.bind(this);
         this.failureMessage = this.failureMessage.bind(this);
+        this.checkIfSignedIn = this.checkIfSignedIn.bind(this);
 
+    }
+
+    //check if an admin is signed in on page load
+    checkIfSignedIn() {
+        if (this.state.isAdmin === 0) {
+            //redirect if admin isnt signed in
+            this.setState({ redirectToList: true });
+        }
+    }
+
+    //will call whenever new props are received
+    componentDidUpdate(prevProps) {
+        console.log("Update Page received new props!");
+        // Typical usage (don't forget to compare props):
+        if (this.props.isAdmin !== prevProps.isAdmin) {
+            console.log("The new prop was different from the old one - new isAdmin: " + this.props.username)
+            this.setState({ userIsAdmin: parseInt(this.props.isAdmin) });
+        }
     }
 
     //check if a valid id is present before loading page
     componentWillMount() {
+        this.checkIfSignedIn();
         const queryString = window.location.pathname;
         var id = queryString.substring(queryString.lastIndexOf('/') + 1);
 
@@ -57,12 +78,7 @@ export class Update extends React.Component {
             return;
         }
         this.setState({
-            id: id,
-            pageContent: (<div>
-                <h1>Update Dog</h1>
-                <p>Loading...</p>
-            </div>
-            )
+            id: id
         });
     }
 
@@ -233,14 +249,19 @@ export class Update extends React.Component {
                         <input type="text" name="color" id="color" value={this.state.color} onChange={this.handleChange} required />
                         <span id="colorError"></span>
                     </div>
-                    <button type="submit">Update Dog</button>
+                    <Link to="/dogs"><button className="btn btn-light">Cancel</button></Link>
+                    <button type="submit" className="btn btn-primary">Update Dog</button>
+
                 </form>
-                <Link to="/dogs">Cancel</Link>
+
 
             </div>);
         }
         else return (
-            <div>{this.state.pageContent}</div>
+            <div>
+                <h2>Update Dog</h2>
+                <p>Loading...</p>
+            </div>
         );
     };
 }

@@ -1,7 +1,7 @@
 //import React
 import React from 'react';
 //import the react routing functionality - source: https://reacttraining.com/react-router/web/guides/quick-start
-import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, Redirect, useHistory } from 'react-router-dom';
 import { withRouter } from 'react-router'
 
 
@@ -27,8 +27,10 @@ export class MasterPage extends React.Component {
         super(props);
         this.state = {
             username: null,
-            //TODO: set to null on logout
-            redirectHome: ''
+            isAdmin: 0,
+            redirectHome: '',
+            jwtToken: '',
+            refreshToken: '',
         }
         this.signOut = this.signOut.bind(this);
         this.deleteCookies = this.deleteCookies.bind(this);
@@ -37,8 +39,6 @@ export class MasterPage extends React.Component {
     }
     componentWillMount() {
         this.checkCookies();
-
-        //TODO: check for a JWT authentication token, if it exists validate it using an api call, if it is still valid, set state variables (store the cookie as ssl)
     }
 
     //runs after rendering is done
@@ -50,9 +50,10 @@ export class MasterPage extends React.Component {
         //if a cookie exists and contains the correct values
         if (document.cookie !== null && getCookie("username") !== '' && getCookie("jwtToken") !== '' && getCookie("refreshToken") !== '') {
             console.log("username from cookie: " + getCookie("username"));
-            console.log("jwttoken from cookie: " + getCookie("jwtToken"));
+            console.log("isadmin from cookie: " + getCookie("isadmin"));
+            console.log("jwttoken from cookie: " + getCookie("jwtToken")); //TODO: u should validate the jwt token on page load
             console.log("refreshtoken from cookie: " + getCookie("refreshToken"));
-            this.setState({ username: getCookie("username") });
+            this.setState({ username: getCookie("username"), isAdmin: getCookie("isadmin"), jwtToken: getCookie("jwtToken"), refreshToken: getCookie("refreshToken") });
         }
         else {
             console.log("no cookies with the correct values!");
@@ -62,21 +63,21 @@ export class MasterPage extends React.Component {
     }
     deleteCookies() {
         console.log("deleting cookies...")
-        document.cookie = 'username' + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        document.cookie = 'jwttoken' + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        document.cookie = 'refreshtoken' + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'jwttoken=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'refreshtoken=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'isadmin=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     }
 
 
     signOut() {
-        //do the logout api call to delete your refresh key - TODO: store refresh keys
+        //do the logout api call to delete your refresh key
         //then delete the cookies
-        //then erase the MasterPage's username state TODO: store the parent component as a prop in this one
-        //then redirect to the home page
-        this.setState({ username: null, redirectHome: <Redirect to='/?signout=true' /> });
+        //then erase the MasterPage's username state 
+        //then redirect to the home page (done inside WebsiteHeader.js)
+        this.setState({ username: null, isAdmin: 0, redirectHome: <Redirect to='/?signout=true' /> });
         console.log("You have signed out!");
         this.deleteCookies();
-        //document.location("/");
     }
 
     render() {
@@ -88,17 +89,23 @@ export class MasterPage extends React.Component {
                     <Switch>
                         {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
                     </Route>*/}
-                        <Route exact path="/dogs" component={withRouter(List)}>
+                        <Route exact path="/dogs" render={(props) => (
+                            <List {...props} isAdmin={this.state.isAdmin} />
+                        )}>
                         </Route>
-                        <Route exact path="/dogs/add" component={withRouter(Add)}>
+                        <Route exact path="/dogs/add" render={(props) => (
+                            <Add {...props} isAdmin={this.state.isAdmin} />
+                        )}>
                         </Route>
-                        <Route exact path="/dogs/update/:id" component={withRouter(Update)}>
+                        <Route exact path="/dogs/update/:id" render={(props) => (
+                            <Update {...props} isAdmin={this.state.isAdmin} />
+                        )}>
                         </Route>
                         <Route exact path="/contact">
                             <Contact />
                         </Route>
                         <Route exact path="/signin" render={(props) => (
-                            <SignIn {...props} signin={this.checkCookies} />
+                            <SignIn {...props} signin={this.checkCookies} username={this.state.username} />
                         )} >
                         </Route>
                         <Route path="/" exact>
@@ -121,10 +128,10 @@ function getCookie(cname) {
     var ca = decodedCookie.split(';');
     for (var i = 0; i < ca.length; i++) {
         var c = ca[i];
-        while (c.charAt(0) == ' ') {
+        while (c.charAt(0) === ' ') {
             c = c.substring(1);
         }
-        if (c.indexOf(name) == 0) {
+        if (c.indexOf(name) === 0) {
             return c.substring(name.length, c.length);
         }
     }

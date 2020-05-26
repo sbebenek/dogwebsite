@@ -11,6 +11,7 @@ export class WebsiteHeader extends React.Component {
             signInHolder: <Link to="/signin"><button className="btn btn-outline-light my-2 my-sm-0">Sign In</button></Link>
         }
         this.updateSignInButtonArea = this.updateSignInButtonArea.bind(this);
+        this.signOutAndRedirect = this.signOutAndRedirect.bind(this);
 
     }
 
@@ -32,6 +33,11 @@ export class WebsiteHeader extends React.Component {
         }
     }
 
+    signOutAndRedirect() {
+        this.props.signout();
+        this.setState({ redirectHome: <Redirect to="/" /> });
+    }
+
     updateSignInButtonArea(newUsername) {
         console.log("drawing sign in button area based on state...")
         //if the username prop is empty, then no one is logged in - display sign in button 
@@ -46,7 +52,7 @@ export class WebsiteHeader extends React.Component {
                 signInHolder: (
                     <div className="form-inline">
                         <p className="nav-link custom-nav-item my-auto">{newUsername}</p>
-                        <button onClick={this.props.signout} className="btn btn-outline-light my-2 my-sm-0 btn-sm">Sign Out</button>
+                        <button onClick={this.signOutAndRedirect} className="btn btn-outline-light my-2 my-sm-0 btn-sm">Sign Out</button>
                     </div>
                 )
             });
@@ -57,6 +63,7 @@ export class WebsiteHeader extends React.Component {
     render() {
         return (
             <header>
+                {this.state.redirectHome}
                 <nav className="navbar navbar-expand-lg header-background" >
                     <Link to="/"><span className="navbar-brand custom-nav-item">Dog Website</span></Link>
                     <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

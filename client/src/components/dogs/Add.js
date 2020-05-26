@@ -9,6 +9,7 @@ export class Add extends React.Component {
         //the proper way to handle forms in react is save every form element as a state variable, change the states on input change, and handle validation on a onSubmit function
         super(props);
         this.state = {
+            userIsAdmin: parseInt(this.props.isAdmin),
             name: '',
             breed: '',
             gender: 'Male',
@@ -25,6 +26,24 @@ export class Add extends React.Component {
         this.successMessage = this.successMessage.bind(this);
         this.failureMessage = this.failureMessage.bind(this);
 
+    }
+
+    //check if an admin is signed in on page load
+    checkIfSignedIn() {
+        if (this.state.userIsAdmin === 0) {
+            //redirect if admin isnt signed in
+            this.setState({ redirectToList: true });
+        }
+    }
+
+    //will call whenever new props are received
+    componentDidUpdate(prevProps) {
+        console.log("Add Page received new props!");
+        // Typical usage (don't forget to compare props):
+        if (this.props.isAdmin !== prevProps.isAdmin) {
+            console.log("The new prop was different from the old one - new isAdmin: " + this.props.username)
+            this.setState({ userIsAdmin: parseInt(this.props.isAdmin) });
+        }
     }
 
     handleChange(e) {
@@ -95,6 +114,7 @@ export class Add extends React.Component {
         if (this.state.redirectToList === true) {
             return <Redirect to='/dogs?cmd=added' />
         }
+        { this.checkIfSignedIn() }
         return (
             <div>
                 <h2>Add New Dog</h2>
