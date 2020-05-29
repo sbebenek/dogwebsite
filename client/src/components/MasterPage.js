@@ -8,7 +8,7 @@ import { withRouter } from 'react-router'
 //import components
 import { WebsiteHeader } from './WebsiteHeader';
 import { Home } from './Home';
-import { Dogs } from './dogs/Dogs';
+import { Details } from './dogs/Details';
 import { List } from './dogs/List';
 import { Add } from './dogs/Add';
 import { Update } from './dogs/Update';
@@ -90,15 +90,18 @@ export class MasterPage extends React.Component {
                         {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
                     </Route>*/}
                         <Route exact path="/dogs" render={(props) => (
-                            <List {...props} isAdmin={this.state.isAdmin} />
+                            <List {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken}/>
                         )}>
                         </Route>
+                        <Route exact path="/dogs/details/:id" render={(props) => (
+                            <Details {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut}/>
+                        )}></Route>
                         <Route exact path="/dogs/add" render={(props) => (
-                            <Add {...props} isAdmin={this.state.isAdmin} />
+                            <Add {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut}/>
                         )}>
                         </Route>
                         <Route exact path="/dogs/update/:id" render={(props) => (
-                            <Update {...props} isAdmin={this.state.isAdmin} />
+                            <Update {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
                         )}>
                         </Route>
                         <Route exact path="/contact">

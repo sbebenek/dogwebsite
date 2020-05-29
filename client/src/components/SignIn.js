@@ -110,7 +110,8 @@ export class SignIn extends React.Component {
     }
 
     render() {
-        {this.checkIfSignedIn()}
+        
+        {this.checkIfSignedIn()}   
         return (
             <div>
                 {this.state.redirectToHome}
@@ -119,17 +120,17 @@ export class SignIn extends React.Component {
                 {/*noValidate allows you to automatically check if form fields are empty*/}
                 <form action="" onSubmit={this.handleSubmit} noValidate>
                     <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
-                    <div>
+                    <div className="form-group">
                         <label htmlFor="username">Username: </label>
-                        <input type="text" name="username" id="username" value={this.state.username} onChange={this.handleChange} required />
+                        <input className="form-control" type="text" name="username" id="username" value={this.state.username} onChange={this.handleChange} required />
                         <span id="usernameError"></span>
                     </div>
-                    <div>
+                    <div className="form-group">
                         <label htmlFor="password">Password: </label>
-                        <input type="password" name="password" id="password" onChange={this.handleChange} required></input>
+                        <input className="form-control" type="password" name="password" id="password" onChange={this.handleChange} required></input>
                         <span id="passwordError"></span>
                     </div>
-                    <button type="submit">Sign In</button>
+                    <button className="btn btn-primary" type="submit">Sign In</button>
                 </form>
             </div>
         );

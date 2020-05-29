@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
 //let tableHolder = <div>Loading...</div>;
 
@@ -15,13 +15,15 @@ export class List extends React.Component {
             isAdmin: parseInt(this.props.isAdmin),
             list: [],
             commandMessage: '',
-            tableHolder: <div>Loading...</div>
+            tableHolder: <div>Loading...</div>,
+            redirectHolder: ''
         }
         this.handleDelete = this.handleDelete.bind(this);
         this.checkIfAdmin = this.checkIfAdmin.bind(this);
+        this.redirect = this.redirect.bind(this);
     }
 
-    //prints the 
+    //prints the add button if admin
     checkIfAdmin() {
         console.log("is user admin - " + this.state.isAdmin);
         if (this.state.isAdmin === 1) {
@@ -74,8 +76,17 @@ export class List extends React.Component {
         console.log("deleting dog with id " + id);
         fetch("/api/dogs/delete/" + id, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.props.jwtToken
+            }
         }).then(function (response) {
+            if (response.status === 403) {
+                //token is expired, sign out and redirect to login form
+                this.props.signOut();
+                this.setState({ redirectToLogin: true });
+                throw new Error("Bad response from server: token expired");
+            }
             if (response.status >= 400) {
                 this.setState({ commandMessage: <div>Database error - sorry!</div> });
                 throw new Error("Bad response from server");
@@ -102,7 +113,7 @@ export class List extends React.Component {
             .then(() => {
                 this.setState({
                     tableHolder: (
-                        <table className="table">
+                        <table className="table table-striped">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -112,8 +123,11 @@ export class List extends React.Component {
                                     <th>Age</th>
                                     <th>Weight</th>
                                     <th>Color</th>
+                                    <th></th>
+                                    {/*
                                     <th>Update</th>
                                     <th>Delete</th>
+                                    */}
                                 </tr>
                             </thead>
                             <tbody>
@@ -130,8 +144,11 @@ export class List extends React.Component {
                                             <td>{item.dogage}</td>
                                             <td>{item.dogweight}</td>
                                             <td>{item.dogcolor}</td>
+                                            <td><Link to={this.props.match.path + "/details/" + item.dogid}><button className="btn btn-primary">Details</button></Link></td>
+                                            {/*
                                             <td><Link to={this.props.match.path + "/update/" + item.dogid}><button className="btn btn-primary">Update</button></Link></td>
                                             <td><button className="btn btn-primary" onClick={() => this.handleDelete(item.dogid)}>Delete</button></td>
+                                            */}
                                         </tr>
                                     );
                                 })}
@@ -141,19 +158,27 @@ export class List extends React.Component {
             });
         //}, 1000);
     }
+
+    redirect(id) {
+        this.setState({ redirectHolder: <Redirect to={this.props.match.path + "/dogs/details/" + id} /> });
+    }
     render() {
+        if (this.state.redirectToLogin === true) {
+            return <Redirect to='/signin' />;
+        }
+        else
+            return (
+                <div>
+                    {this.state.redirectHolder}
+                    <h1>Dogs</h1>
+                    {this.state.commandMessage}
+                    <p>Here is a list of all the dogs in our system.</p>
+                    {this.checkIfAdmin()}
 
-        return (
-            <div>
-                <h1>Dogs</h1>
-                {this.state.commandMessage}
-                <p>Here is a list of all the dogs in our system.</p>
-                {this.checkIfAdmin()}
-
-                {this.state.tableHolder}
+                    {this.state.tableHolder}
 
 
-            </div>
-        );
+                </div>
+            );
     }
 }

@@ -16,8 +16,11 @@ export class Add extends React.Component {
             age: '',
             weight: '',
             color: '',
+            description: '',
+            location: '',
             //imageref: '',
             redirectToList: false,
+            redirectToLogin: false,
             errorMessage: errorMessage
         };
 
@@ -90,14 +93,25 @@ export class Add extends React.Component {
                 gender: this.state.gender,
                 age: this.state.age,
                 weight: this.state.weight,
-                color: this.state.color
+                color: this.state.color,
+                description: this.state.description,
+                location: this.state.location
             }
             console.log(data)
             fetch("/api/dogs/add", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + this.props.jwtToken
+                },
                 body: JSON.stringify(data)
             }).then(function (response) {
+                if (response.status === 403) {
+                    //token is expired, sign out and redirect to login form
+                    this.props.signOut();
+                    this.setState({redirectToLogin: true});
+                    throw new Error("Bad response from server: token expired");
+                }
                 if (response.status >= 400) {
                     throw new Error("Bad response from server");
                 }
@@ -111,54 +125,73 @@ export class Add extends React.Component {
 
 
     render() {
+        if(this.state.redirectToLogin === true) {
+            return <Redirect to='/signin' />
+        }
         if (this.state.redirectToList === true) {
             return <Redirect to='/dogs?cmd=added' />
         }
+        
         { this.checkIfSignedIn() }
         return (
             <div>
                 <h2>Add New Dog</h2>
                 <form action="" onSubmit={this.handleSubmit} noValidate>
                     <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
-                    <div>
+                    <div className="form-group">
                         <label htmlFor="name">Name: </label>
-                        <input type="text" name="name" id="name" value={this.state.name} onChange={this.handleChange} required />
+                        <input className="form-control" type="text" name="name" id="name" value={this.state.name} onChange={this.handleChange} required />
                         <span id="nameError"></span>
                     </div>
                     <div>File upload will go here</div>
-                    <div>
+                    <div className="form-group">
                         <label htmlFor="breed">Breed: </label>
-                        <input type="text" name="breed" id="breed" value={this.state.breed} onChange={this.handleChange} required />
+                        <input className="form-control" type="text" name="breed" id="breed" value={this.state.breed} onChange={this.handleChange} required />
                         <span id="breedError"></span>
                     </div>
-                    <div>
+                    <div className="form-group">
+
                         <label htmlFor="gender">Gender: </label> <br />
-                        <input type="radio" id="male" name="gender" value="Male" onChange={this.handleChange} checked />
-                        <label htmlFor="male">Male</label><br />
-                        <input type="radio" id="female" name="gender" onChange={this.handleChange} value="Female" />
-                        <label htmlFor="female">Female</label><br />
-                        <span id="nameError"></span>
+                        <div class="form-check">
+                            <input className="form-check-input" type="radio" id="male" name="gender" value="Male" onChange={this.handleChange} checked />
+                            <label className="form-check-label" htmlFor="male">Male</label>
+                        </div>
+                        <div class="form-check">
+                            <input className="form-check-input" type="radio" id="female" name="gender" onChange={this.handleChange} value="Female" />
+                            <label className="form-check-label" htmlFor="female">Female</label><br />
+                        </div>
                     </div>
-                    <div>
+                    <div className="form-group">
                         <label htmlFor="age">Age: </label>
-                        <input type="number" name="age" id="age" value={this.state.age} onChange={this.handleChange} required />
+                        <input className="form-control" type="number" name="age" id="age" value={this.state.age} onChange={this.handleChange} required />
                         <span id="ageError"></span>
                     </div>
-                    <div>
+                    <div className="form-group">
                         <label htmlFor="weight">Weight: </label>
-                        <input type="number" name="weight" id="weight" step="0.01" value={this.state.weight} onChange={this.handleChange} required />
+                        <input className="form-control" type="number" name="weight" id="weight" step="0.01" value={this.state.weight} onChange={this.handleChange} required />
                         <span id="weightError"></span>
                     </div>
-                    <div>
+                    <div className="form-group">
                         <label htmlFor="color">Color: </label>
-                        <input type="text" name="color" id="color" value={this.state.color} onChange={this.handleChange} required />
+                        <input className="form-control" type="text" name="color" id="color" value={this.state.color} onChange={this.handleChange} required />
                         <span id="colorError"></span>
                     </div>
-                    <button type="submit">Add Dog</button>
-                </form>
-                <Link to="/dogs">Cancel</Link>
+                    <div className="form-group">
+                        <label htmlFor="location">Location: </label>
+                        <input className="form-control" type="text" name="location" id="location" value={this.state.location} onChange={this.handleChange} required />
+                        <span id="locationError"></span>
+                    </div>
 
-            </div>
+                    <div className="form-group">
+                        <label htmlFor="description">Description: </label>
+                        <textarea className="form-control" name="description" id="description" onChange={this.handleChange} rows="4">{this.state.description}</textarea>
+                        <span id="descriptionError"></span>
+                    </div>
+                    <Link to="/dogs"><button className="btn btn-light" type="submit">Cancel</button></Link>
+                    <button className="btn btn-primary" type="submit">Add Dog</button>
+                </form>
+
+            </div >
         );
     };
 }

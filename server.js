@@ -57,7 +57,6 @@ app.get('/api/dogs/list', (req, res) => {
 });
 
 //api endpoint that adds a dog to the database
-//FIXME: this endpoint will only add a dog if the user has an authenticated token. Once JWT is added as a cookie, send that JWT cookie in the body of the request
 app.post('/api/dogs/add', authenticateToken, (req, res) => {
     console.log("-----");
     console.log("Data was just received by the server: Add Dog post data");
@@ -68,15 +67,17 @@ app.post('/api/dogs/add', authenticateToken, (req, res) => {
     }
     //POST Parameters are grabbed using req.body.variable_name
     let body = req.body;
-    let name = body.name, breed = body.breed, gender = body.gender, age = body.age, weight = body.weight, color = body.color;
+    let name = body.name, breed = body.breed, gender = body.gender, age = body.age, weight = body.weight, color = body.color, description = body.description, location = body.location;
     //named placeholders strips sql commands - prevents sql injections - https://www.veracode.com/blog/secure-development/how-prevent-sql-injection-nodejs
-    mysqlConnection.query("INSERT INTO dogs (dogname, dogbreed, doggender, dogage, dogweight, dogcolor) VALUES (?, ?, ?, ?, ?, ?)", [
+    mysqlConnection.query("INSERT INTO dogs (dogname, dogbreed, doggender, dogage, dogweight, dogcolor, dogdescription, doglocation) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [
         name,
         breed,
         gender,
         age,
         weight,
-        color
+        color,
+        description,
+        location
     ], (err, result, fields) => {
         if (!err) {
             res.send("success");
@@ -125,21 +126,23 @@ app.get('/api/dogs/:id', (req, res) => {
 });
 
 //**UPDATE DOGS */
-app.put('/api/dogs/update/:id', (req, res) => {
+app.put('/api/dogs/update/:id', authenticateToken, (req, res) => {
     console.log("-----");
     console.log("Data was received to update dog entry at id: " + req.params.id);
 
     //POST Parameters are grabbed using req.body.variable_name
     let body = req.body;
-    let id = body.id, name = body.name, breed = body.breed, gender = body.gender, age = body.age, weight = body.weight, color = body.color;
+    let id = body.id, name = body.name, breed = body.breed, gender = body.gender, age = body.age, weight = body.weight, color = body.color, description = body.description, location=body.location;
     //named placeholders strips sql commands - prevents sql injections - https://www.veracode.com/blog/secure-development/how-prevent-sql-injection-nodejs
-    mysqlConnection.query("UPDATE dogs SET dogname = ?, dogbreed = ?, doggender = ?, dogage = ?, dogweight = ?, dogcolor = ? WHERE dogid = ?;", [
+    mysqlConnection.query("UPDATE dogs SET dogname = ?, dogbreed = ?, doggender = ?, dogage = ?, dogweight = ?, dogcolor = ?, dogdescription = ?, doglocation = ? WHERE dogid = ?;", [
         name,
         breed,
         gender,
         age,
         weight,
         color,
+        description,
+        location,
         id
     ], (err, result, fields) => {
         if (!err) {
@@ -154,7 +157,7 @@ app.put('/api/dogs/update/:id', (req, res) => {
 });
 
 //**API DELETE DOGS ENDPOINT */
-app.delete('/api/dogs/delete/:id', (req, res) => {
+app.delete('/api/dogs/delete/:id', authenticateToken, (req, res) => {
     console.log("-----");
     console.log("Data was received to delete dog entry at id: " + req.params.id);
     //if id is null or invalid (ie. NaN)
@@ -247,9 +250,8 @@ app.post('/api/accounts/signin', (req, res) => {
 /**
  * authorize that a given JWT token indicates that a authenticated user is an admin
  */
-app.post('/api/accounts/admin',  authenticateToken, (req, res) => {
-    if (userIsAdmin(req) === true)
-    {
+app.post('/api/accounts/admin', authenticateToken, (req, res) => {
+    if (userIsAdmin(req) === true) {
         res.status(200);
     }
     else res.status(401);
@@ -263,7 +265,7 @@ app.post('/api/accounts/token', (req, res) => {
     //else, it exists on the database and is a valid refresh token
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) { return res.sendStatus(403); }
-        const accessToken = generateAccessToken({id: user.id, username: user.username, isadmin: user.isadmin }); //generate a new token with all the same parameters as the old token
+        const accessToken = generateAccessToken({ id: user.id, username: user.username, isadmin: user.isadmin }); //generate a new token with all the same parameters as the old token
         res.json();
     })
 });
@@ -290,11 +292,15 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']; // this header will have the format 'Bearer TOKEN'
     const token = authHeader && authHeader.split(' ')[1]; //if the header doesn't exist, return as undefined. If it does, return the token
     if (token == null) {
+        console.log("Authenticated request attempt: no token found");
         return res.sendStatus(401); //this is the part that might not work...
     }
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, id, username, isadmin) => {
-        if (err) { return res.sendStatus(403) } //a token exists, but it has expired and is no longer valid
+        if (err) {
+            console.log("Authenticated request attempt: expired token");
+            return res.sendStatus(403);  //a token exists, but it has expired and is no longer valid
+        }
         req.id = id; //add a field to the request containing the user id
         req.isadmin = isadmin;
         next(); //move on from the middleware
