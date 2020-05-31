@@ -7,10 +7,13 @@ const path = require('path');
 const mysql = require("mysql");
 const bodyParser = require("body-parser");
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const cors = require('cors');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(express.json());
+app.use(cors());
 
 
 //MYSQL CONNECTION DONE HERE - source https://www.youtube.com/watch?v=xn9ef5pod18&list=LLi27Shmiim3B-lLFh8XjLTQ&index=2
@@ -31,6 +34,18 @@ mysqlConnection.connect((err) => {
         console.log("Connection error");
     }
 });
+
+
+//multer instance
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '/client/public/images')) //TODO: change this to the build folder once the react app is built
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+});
+const upload = multer({ storage: storage }).single('file');
 
 // Serve the static files from the React app -- only viewable once react app is built for production deployment
 app.use(express.static(path.join(__dirname, 'client/build')));
@@ -132,7 +147,9 @@ app.put('/api/dogs/update/:id', authenticateToken, (req, res) => {
 
     //POST Parameters are grabbed using req.body.variable_name
     let body = req.body;
-    let id = body.id, name = body.name, breed = body.breed, gender = body.gender, age = body.age, weight = body.weight, color = body.color, description = body.description, location=body.location;
+    let id = body.id, name = body.name, breed = body.breed, gender = body.gender, age = body.age, weight = body.weight, color = body.color,
+        description = body.description, location = body.location;
+    //react & express file upload - https://programmingwithmosh.com/javascript/react-file-upload-proper-server-side-nodejs-easy/
     //named placeholders strips sql commands - prevents sql injections - https://www.veracode.com/blog/secure-development/how-prevent-sql-injection-nodejs
     mysqlConnection.query("UPDATE dogs SET dogname = ?, dogbreed = ?, doggender = ?, dogage = ?, dogweight = ?, dogcolor = ?, dogdescription = ?, doglocation = ? WHERE dogid = ?;", [
         name,
@@ -154,6 +171,28 @@ app.put('/api/dogs/update/:id', authenticateToken, (req, res) => {
             console.log(err);
         }
     });
+});
+
+//**API UPLOAD IMAGE ENDPOINT **//
+app.post('/api/upload', authenticateToken, (req, res) => {
+    console.log("-----");
+    console.log("file being uploaded...");
+    //react & express file upload - https://programmingwithmosh.com/javascript/react-file-upload-proper-server-side-nodejs-easy/
+    upload(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            console.log("Multer Error.");
+            return res.status(500).json(err);
+        } else if (err) {
+            console.log("Unknown Error.");
+            console.log(err);
+            console.log(req.body);
+            return res.status(500).json(err);
+        }
+        console.log(req.body);
+
+        console.log("File sucessfully uploaded. Check the /public/images folder!");
+        return res.status(200).send(req.file);
+    })
 });
 
 //**API DELETE DOGS ENDPOINT */
@@ -298,7 +337,7 @@ function authenticateToken(req, res, next) {
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, id, username, isadmin) => {
         if (err) {
-            console.log("Authenticated request attempt: expired token");
+            console.log("Authenticated request attempt: expired token - response status 403");
             return res.sendStatus(403);  //a token exists, but it has expired and is no longer valid
         }
         req.id = id; //add a field to the request containing the user id

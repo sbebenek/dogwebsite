@@ -12,6 +12,7 @@ import { Details } from './dogs/Details';
 import { List } from './dogs/List';
 import { Add } from './dogs/Add';
 import { Update } from './dogs/Update';
+import { ChangeImage } from './dogs/ChangeImage';
 
 import { Contact } from './Contact';
 import { SignIn } from './SignIn';
@@ -102,6 +103,10 @@ export class MasterPage extends React.Component {
                         </Route>
                         <Route exact path="/dogs/update/:id" render={(props) => (
                             <Update {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
+                        )}>
+                        </Route>
+                        <Route exact path="/dogs/changeimage/:id" render={(props) => (
+                            <ChangeImage {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
                         )}>
                         </Route>
                         <Route exact path="/contact">

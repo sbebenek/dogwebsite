@@ -31,7 +31,8 @@ export class Update extends React.Component {
             loadForm: false,
             validId: true,
             maleCheck: "",
-            femaleCheck: ""
+            femaleCheck: "",
+            uploadedImage: null //holds the uploaded image file
         };
 
         this.handleChange = this.handleChange.bind(this);
@@ -39,6 +40,7 @@ export class Update extends React.Component {
         this.successMessage = this.successMessage.bind(this);
         this.failureMessage = this.failureMessage.bind(this);
         this.checkIfSignedIn = this.checkIfSignedIn.bind(this);
+        this.handleImageUpload = this.handleImageUpload.bind(this);
 
     }
 
@@ -197,14 +199,16 @@ export class Update extends React.Component {
             console.log(data)
             fetch("/api/dogs/update/" + this.state.id, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.props.jwtToken },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + this.props.jwtToken
+                },
                 body: JSON.stringify(data)
             }).then(function (response) {
                 if (response.status === 403) {
                     //token is expired, sign out and redirect to login form
                     this.props.signOut();
-                    this.setState({redirectToLogin: true});
+                    this.setState({ redirectToLogin: true });
                     throw new Error("Bad response from server: token expired");
                 }
                 if (response.status >= 400) {
@@ -219,9 +223,18 @@ export class Update extends React.Component {
         }
     }
 
+    /**
+     * stores the image file to the state variable when an image is uploaded
+     * @param {*} event 
+     */
+    handleImageUpload(event) {
+        console.log(event.target.files[0]);
+        this.setState({ uploadedImage: event.target.files[0] });
+    }
+
 
     render() {
-        if(this.state.redirectToLogin === true) {
+        if (this.state.redirectToLogin === true) {
             return <Redirect to='/signin' />
         }
         if (this.state.redirectToList === true) {
@@ -230,8 +243,13 @@ export class Update extends React.Component {
         if (this.state.loadForm === true) {
             return (<div>
                 <h2>Update Dog</h2>
-                <form action="" onSubmit={this.handleSubmit} noValidate>
+                <form action="" onSubmit={this.handleSubmit} noValidate encType="multipart/form-data" >
                     <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
+                    <div className="form-group files">
+                        <input type="file" id="image" name="image" className="form-control" multiple="" accept="image/*" onChange={this.handleImageUpload} />
+                        <label htmlFor="image">Image Upload: </label>
+                        <span id="nameError"></span>
+                    </div>
                     <div className="form-group">
                         <label htmlFor="name">Name: </label>
                         <input className="form-control" type="text" name="name" id="name" value={this.state.name} onChange={this.handleChange} required />

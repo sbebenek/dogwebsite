@@ -108,6 +108,7 @@ export class Add extends React.Component {
             }).then(function (response) {
                 if (response.status === 403) {
                     //token is expired, sign out and redirect to login form
+                    console.log("403 - resquest sent with an expired token");
                     this.props.signOut();
                     this.setState({redirectToLogin: true});
                     throw new Error("Bad response from server: token expired");
@@ -143,7 +144,6 @@ export class Add extends React.Component {
                         <input className="form-control" type="text" name="name" id="name" value={this.state.name} onChange={this.handleChange} required />
                         <span id="nameError"></span>
                     </div>
-                    <div>File upload will go here</div>
                     <div className="form-group">
                         <label htmlFor="breed">Breed: </label>
                         <input className="form-control" type="text" name="breed" id="breed" value={this.state.breed} onChange={this.handleChange} required />
@@ -184,7 +184,7 @@ export class Add extends React.Component {
 
                     <div className="form-group">
                         <label htmlFor="description">Description: </label>
-                        <textarea className="form-control" name="description" id="description" onChange={this.handleChange} rows="4">{this.state.description}</textarea>
+                        <textarea className="form-control" name="description" id="description" onChange={this.handleChange} rows="4" value={this.state.description}></textarea>
                         <span id="descriptionError"></span>
                     </div>
                     <Link to="/dogs"><button className="btn btn-light" type="submit">Cancel</button></Link>
