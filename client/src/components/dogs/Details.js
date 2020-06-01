@@ -1,13 +1,13 @@
 //import React
 import React from 'react';
 import { Link, Redirect } from 'react-router-dom';
+import Modal from "react-bootstrap/Modal";
 
 
 export class Details extends React.Component {
     constructor(props) {
         super(props);
 
-        //TODO: get dog information with given id
 
         this.state = {
             id: this.props.match.params.id,
@@ -22,12 +22,20 @@ export class Details extends React.Component {
             description: '',
             location: '',
             //imageref: ''
-            imageSource: '/images/default.jpg'
+            imageSource: '/images/default.jpg',
+            show: false, //whether or not the modal is showing
+            deleteButtonHolder: '',
+            redirectHolder: ''
         }
+
+        this.handleShow = this.handleShow.bind(this);
+        this.handleClose = this.handleClose.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
+
     }
 
     componentDidUpdate(prevProps) {
-        console.log("Dog List Page received new props!");
+        console.log("Dog Details Page received new props!");
         // Typical usage (don't forget to compare props):
         if (this.props.isAdmin !== prevProps.isAdmin) {
             console.log("The new prop was different from the old one - new isAdmin: " + this.props.isAdmin)
@@ -94,30 +102,94 @@ export class Details extends React.Component {
             });
     }
 
+
+
     //prints the update and delete buttons if admin
     checkIfAdmin() {
         console.log("is user admin - " + this.state.isAdmin);
         if (this.state.isAdmin === 1) {
             console.log("user is admin!");
+            this.setState({deleteButtonHolder: <button className="btn btn-danger" onClick={() => {this.handleDelete(this.state.id)}}>
+            Delete
+        </button>});
             return (<div>
                 <Link to={"/dogs/update/" + this.state.id}><button className="btn btn-warning">Update</button></Link>
                 <Link to={"/dogs/changeimage/" + this.state.id}><button className="btn btn-info">Change Image</button></Link>
-                <button className="btn btn-danger" onClick={() => this.handleDelete(this.state.id)}>Delete</button>
+                <button className="btn btn-danger" onClick={this.handleShow}>Delete</button>
+
+                
+
             </div>);
         }
         else return '';
     }
 
     //TODO: get jwt token from props
-    //move delete fuction from List to here
-    //create a delete confirm modal window
+    
+    handleDelete(id) {
+        //TODO: this should be put in details once that is done
+        this.setState({ tableHolder: <div>Loading...</div> });
+        console.log("deleting dog with id " + id);
+        fetch("/api/dogs/delete/" + id, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.props.jwtToken
+            }
+        }).then(function (response) {
+            if (response.status === 403) {
+                //token is expired, sign out and redirect to login form
+                this.props.signOut();
+                this.setState({ redirectToLogin: true });
+                throw new Error("Bad response from server: token expired");
+            }
+            if (response.status >= 400) {
+                this.setState({ commandMessage: <div>Database error - sorry!</div> });
+                throw new Error("Bad response from server");
+            }
+            console.log(response);
+        }).then(() => {
+            console.log("successfully deleted dog with id: " + id);
+            this.setState({ redirectHolder: <Redirect to={"/dogs?cmd=deleted"} /> });
+            this.getList();
+        })
+            .catch(function (err) {
+                console.log(err);
+            });
+
+    }
+
+    //MODAL METHODS
+    handleClose() {
+        console.log("hiding modal...");
+        this.setState({ show: false });
+    }
+
+    handleShow() {
+        console.log("showing modal...");
+        this.setState({ show: true });
+    }
 
     render() {
         return (
             <div>
+                {this.state.redirectHolder}
                 <Link to="/dogs"><button className="btn btn-sm btn-light">Go Back</button></Link>
                 <h2>Details</h2>
                 {this.state.pageContent}
+                {/*<!-- Modal --> https://bit.dev/react-bootstrap/react-bootstrap/modal*/}
+                <Modal show={this.state.show} onHide={this.handleClose}>
+                    <Modal.Header closeButton>
+                        <Modal.Title></Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>Are you sure you want to delete this Dog from the database?</Modal.Body>
+                    <Modal.Footer>
+                        <button className="btn btn-light" onClick={this.handleClose}>
+                            Close
+                        </button>
+                        {this.state.deleteButtonHolder}
+                    </Modal.Footer>
+                </Modal>
 
             </div>
         );

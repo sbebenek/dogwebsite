@@ -80,7 +80,7 @@ export class ChangeImage extends React.Component {
                     <span id="nameError"></span>
                 </div>
 
-                <Link to="/dogs"><button className="btn btn-light">Cancel</button></Link>
+                <Link to={"/dogs/details/" + this.state.id}><button className="btn btn-light">Cancel</button></Link>
                 <button type="submit" className="btn btn-primary" onClick={this.handleSubmit}>Update Image</button>
 
             </div>

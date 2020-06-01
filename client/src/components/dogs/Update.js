@@ -238,7 +238,7 @@ export class Update extends React.Component {
             return <Redirect to='/signin' />
         }
         if (this.state.redirectToList === true) {
-            return <Redirect to='/dogs?cmd=updated' />
+            return <Redirect to={'/dogs/details/' + this.state.id + '?cmd=updated'} />
         }
         if (this.state.loadForm === true) {
             return (<div>
@@ -295,7 +295,7 @@ export class Update extends React.Component {
                         <textarea className="form-control" name="description" id="description" onChange={this.handleChange} rows="4" value={this.state.description}></textarea>
                         <span id="descriptionError"></span>
                     </div>
-                    <Link to="/dogs"><button className="btn btn-light">Cancel</button></Link>
+                    <Link to={"/dogs/details/" + this.state.id}><button className="btn btn-light">Cancel</button></Link>
                     <button type="submit" className="btn btn-primary">Update Dog</button>
 
                 </form>

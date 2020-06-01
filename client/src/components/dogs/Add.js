@@ -167,7 +167,7 @@ export class Add extends React.Component {
                         <span id="ageError"></span>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="weight">Weight: </label>
+                        <label htmlFor="weight">Weight(lbs): </label>
                         <input className="form-control" type="number" name="weight" id="weight" step="0.01" value={this.state.weight} onChange={this.handleChange} required />
                         <span id="weightError"></span>
                     </div>
