@@ -2,6 +2,7 @@ import React from 'react';
 import { Redirect, Link } from 'react-router-dom';
 
 export class ChangeImage extends React.Component {
+    
     constructor(props) {
         super(props);
         this.state = {
@@ -22,17 +23,39 @@ export class ChangeImage extends React.Component {
 
 
 
+
+
     /**
-     * stores the image file to the state variable when an image is uploaded
+     * Validates the file that was just selected by the file input.
+     * If correct size and file type, stores the image file to the state variable when an image is uploaded
      * @param {*} event 
      */
     handleImageUpload(event) {
-        this.setState({
-            uploadedImage: event.target.files[0],
-            imageSource: window.URL.createObjectURL(event.target.files[0])
-        });
-        //window.URL.createObjectURL(this.files[0])
+        console.log("file size - " + event.target.files[0].size + ". megabytes - " + event.target.files[0].size/1000000);
+        
+        //IMAGE VALIDATION
+        //source - https://www.codexworld.com/file-type-extension-validation-javascript/ 
+        var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+        if (!allowedExtensions.exec(event.target.files[0].name)) {
+            console.log("An invalid file type tried to be uploaded - " + event.target.files[0].name);
+            this.setState({ errorMessage: 'Invalid filetype: jpg, jpeg, png, or gif only.'});
+        }
+        else if (event.target.files[0].size/1000000 > 2.5)
+        {
+            console.log("Filesize > 2.5 mb - too large.");
+            this.setState({ errorMessage: 'File size too large. Must be smaller than 2.5mb. Your file is approx. ' + event.target.files[0].size/1000000 + "mb"});
+        }
+        else { //correct file type and file size. Save to local storage.
+            this.setState({
+                uploadedImage: event.target.files[0],
+                imageSource: window.URL.createObjectURL(event.target.files[0]),
+                errorMessage: ''
+            });
+        }
     }
+
+
+
 
     componentDidMount() {
         //get existing dog image
@@ -80,6 +103,10 @@ export class ChangeImage extends React.Component {
             });
     }
 
+
+
+
+
     handleSubmit() {
         console.log('upload image state...')
         console.log(this.state.uploadedImage);
@@ -89,7 +116,7 @@ export class ChangeImage extends React.Component {
         if (this.state.uploadedImage !== null) {
             const data = new FormData();
             const file = this.state.uploadedImage;
-            data.append('id', this.state.id);
+            data.append('id', this.state.id); //id is being sent
             data.append('file', file);
             console.log("data object's file field...");
             console.log(data.values());
@@ -114,7 +141,7 @@ export class ChangeImage extends React.Component {
 
                 //if no errors, redirect to details
                 //TODO: test this redirecting
-                this.setState({ redirectToDetails: <Redirect to={"/dogs/details/" + this.state.id} /> });
+                this.setState({ redirectToDetails: <Redirect to={"/dogs/details/" + this.state.id + "?cmd=updated"} /> });
             }).then((data) => {
                 console.log(data);
             })
@@ -122,7 +149,15 @@ export class ChangeImage extends React.Component {
                     console.log(err);
                 });
         }
+        else {
+            this.setState({ errorMessage: 'Please upload an image file.' });
+        }
     }
+
+
+
+
+
 
     render() {
         return (

@@ -11,6 +11,7 @@ const multer = require('multer');
 const crypto = require('crypto'); //required for random 'unique' multer file naming
 const mime = require("mime"); //required for random 'unique' multer file naming
 const cors = require('cors');
+const fs = require('fs'); //filesystem, needed to delete image files
 
 const app = express();
 app.use(bodyParser.json());
@@ -38,11 +39,16 @@ mysqlConnection.connect((err) => {
 });
 
 
-//multer instance
+
+
+
+
+//MULTER INSTANCE
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path.join(__dirname, '/client/public/images')) //TODO: change this to the build folder once the react app is built
     },
+
     filename: function (req, file, cb) {
         //https://github.com/expressjs/multer/issues/170#issuecomment-123362345
         //generate a random unique name based on the current date/time
@@ -51,7 +57,28 @@ const storage = multer.diskStorage({
         });
     }
 });
-const upload = multer({ storage: storage }).single('file');
+const upload = multer({
+    storage: storage,
+    limits: {fileSize: 2500000},
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/gif") {
+            console.log("Image upload validation passed. file type = " + file.mimetype);
+            cb(null, true);
+        } 
+        else {
+            console.log("image upload validation failed. file type = " + file.mimetype + ", file size = " + file.size/1000000 + "mb. Either wrong file type or size > 2.5mb");
+            cb(null, false);
+            return cb(new Error('Validation failed. Image invalid file type - ' + file.mimetype));
+        }
+    }
+}).single('file');
+
+
+
+
+
+
+
 
 // Serve the static files from the React app -- only viewable once react app is built for production deployment
 app.use(express.static(path.join(__dirname, 'client/build')));
@@ -101,6 +128,7 @@ app.post('/api/dogs/add', authenticateToken, (req, res) => {
         location
     ], (err, result, fields) => {
         if (!err) {
+            //TODO: Send new dog id to the front end, so it can redirect to its new details page
             res.send("success");
             console.log("Dog entry was successfully added to the database with these values: " + name + ', ' + breed + ', ' + gender + ', ' + age + ', ' + weight + ', ' + color);
         }
@@ -183,13 +211,12 @@ app.put('/api/dogs/update/:id', authenticateToken, (req, res) => {
 app.post('/api/upload', authenticateToken, (req, res) => {
     console.log("-----");
     console.log("file being uploaded...");
-    //TODO: before uploading, validate image is an image filetype and is a small enough file size
-    //respond with an error code if not valid. Do client-side validation as well
+    console.log("validating image file...");
 
     //react & express file upload - https://programmingwithmosh.com/javascript/react-file-upload-proper-server-side-nodejs-easy/
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
-            console.log("Multer Error.");
+            console.log("Multer Error. If the image uploaded uploaded was larger than 2.5mb, that may be why this error was triggered.");
             return res.status(500).json(err);
         } else if (err) {
             console.log("Unknown Error.");
@@ -197,10 +224,46 @@ app.post('/api/upload', authenticateToken, (req, res) => {
             console.log(req.body);
             return res.status(500).json(err);
         }
+        console.log("Validation passed!");
         console.log(req.body);
         console.log("new file name - " + req.file.filename);
 
-        //TODO: delete old image, if that image exists
+        /*** DELETING OLD IMAGE IF IT EXISTS HERE ***/
+        console.log("Selecting entry with id " + req.body.id + " to see if it has an image...");
+        mysqlConnection.query("SELECT * FROM dogs WHERE dogid = ?;", [
+            req.body.id
+        ], (err, result, fields) => {
+            if (!err) {
+                if (result.length === 0) {
+                    console.log("No entry with that ID found");
+                    console.log(result);
+                    res.status(400).json({
+                        '': ''
+                    });
+                }
+                else {
+                    if (result[0].dogimageref === null || result[0].dogimageref === "") {
+                        console.log("This entry's imageref = " + result[0].dogimageref);
+                        console.log("No image currently associated with this record. Nothing to delete.");
+                    }
+                    else {
+                        console.log("Image found - " + result[0].dogimageref);
+                        console.log("Deleting this image...");
+                        //deleting image with fs - https://stackoverflow.com/questions/41411604/how-to-delete-local-file-with-fs-unlink
+                        fs.unlink(path.join(__dirname, '/client/public/images/' + result[0].dogimageref), (err) => {
+                            if (err) {
+                                console.log("failed to delete local image:" + err);
+                            } else {
+                                console.log('successfully deleted local image');
+                            }
+                        });
+                    }
+                }
+            }
+            else {
+                console.log(err);
+            }
+        });
 
         //now, add that file name to this id's database entry
         mysqlConnection.query("UPDATE dogs SET dogimageref = ? WHERE dogid = ?;", [
@@ -235,8 +298,42 @@ app.delete('/api/dogs/delete/:id', authenticateToken, (req, res) => {
         });
     }
 
-    //TODO: delete image associated with this entry, if it exists
-
+    /*** DELETING OLD IMAGE IF IT EXISTS HERE ***/
+    console.log("Selecting entry with id " + req.body.id + " to see if it has an image...");
+    mysqlConnection.query("SELECT * FROM dogs WHERE dogid = ?;", [
+        req.params.id
+    ], (err, result, fields) => {
+        if (!err) {
+            if (result.length === 0) {
+                console.log("No entry with that ID found");
+                console.log(result);
+                res.status(400).json({
+                    '': ''
+                });
+            }
+            else {
+                if (result[0].dogimageref === null || result[0].dogimageref === "") {
+                    console.log("This entry's imageref = " + result[0].dogimageref);
+                    console.log("No image currently associated with this record. Nothing to delete.");
+                }
+                else {
+                    console.log("Image found - " + result[0].dogimageref);
+                    console.log("Deleting this image...");
+                    //deleting image with fs - https://stackoverflow.com/questions/41411604/how-to-delete-local-file-with-fs-unlink
+                    fs.unlink(path.join(__dirname, '/client/public/images/' + result[0].dogimageref), (err) => {
+                        if (err) {
+                            console.log("failed to delete local image:" + err);
+                        } else {
+                            console.log('successfully deleted local image');
+                        }
+                    });
+                }
+            }
+        }
+        else {
+            console.log(err);
+        }
+    });
 
     //else, id is valid
     mysqlConnection.query("DELETE FROM dogs WHERE dogid = ?", [

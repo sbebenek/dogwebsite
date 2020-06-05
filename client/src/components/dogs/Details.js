@@ -25,7 +25,9 @@ export class Details extends React.Component {
             imageSource: '/images/default.jpg',
             show: false, //whether or not the modal is showing
             deleteButtonHolder: '',
-            redirectHolder: ''
+            redirectHolder: '',
+
+            commandPanel: '' //stores the html for the panel that confirms if something was just added or updated
         }
 
         this.handleShow = this.handleShow.bind(this);
@@ -84,6 +86,7 @@ export class Details extends React.Component {
                                     <img src={this.state.imageSource} alt="dog profile picture" />
                                 </div>
                                 <div><strong>Name: </strong>{this.state.name}</div>
+                                <div><strong>Gender: </strong>{this.state.gender}</div>
                                 <div><strong>Location: </strong>{this.state.location}</div>
                                 <div><strong>Breed: </strong>{this.state.breed}</div>
                                 <div><strong>Age: </strong>{this.state.age}</div>
