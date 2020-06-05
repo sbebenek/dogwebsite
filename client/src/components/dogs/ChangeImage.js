@@ -9,13 +9,18 @@ export class ChangeImage extends React.Component {
             isAdmin: parseInt(this.props.isAdmin),
             id: this.props.match.params.id,
             uploadedImage: null,
-            imageSource: '/images/default.jpg'
+            imageSource: '/images/default.jpg',
+
+            redirectToDetails: '',
+            pageContent: <div>Loading...</div>
         }
         this.handleImageUpload = this.handleImageUpload.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     //TODO: redirect if not an admin
+
+
 
     /**
      * stores the image file to the state variable when an image is uploaded
@@ -29,13 +34,62 @@ export class ChangeImage extends React.Component {
         //window.URL.createObjectURL(this.files[0])
     }
 
+    componentDidMount() {
+        //get existing dog image
+        fetch('/api/dogs/' + this.state.id)
+            .then(res =>
+                res.json()
+            )
+            .then((result) => {
+                //if an empty object was returned
+                if (typeof result[0] == "undefined") {
+                    console.log("result is null")
+                    this.setState({
+                        pageContent: <div>
+                            <p>No entry with that ID found!</p>
+                            <Link to=""><p>Home</p></Link>
+                        </div>
+                    });
+                }
+                else {
+                    if (result[0].dogimageref !== null && result[0].dogimageref !== "") {
+                        //if the dog has a reference image, use it
+                        console.log("dog image ref found - " + result[0].dogimageref);
+                        this.setState({ imageSource: '/images/' + result[0].dogimageref });
+                    }
+                    //setting the content of the page
+                    //TODO: print image
+                    this.setState({
+                        pageContent: (
+                            <div>
+
+                                <div className="form-group files">
+                                    <input type="file" id="image" name="image" className="form-control" multiple="" accept="image/*" onChange={this.handleImageUpload} />
+                                    <label htmlFor="image">Image Upload: </label>
+                                    <span id="nameError"></span>
+                                </div>
+
+                                <Link to={"/dogs/details/" + this.state.id}><button className="btn btn-light">Cancel</button></Link>
+                                <button type="submit" className="btn btn-primary" onClick={this.handleSubmit}>Update Image</button>
+                            </div>
+                        )
+                    })
+                }
+            }).catch(function (err) {
+                console.log(err);
+            });
+    }
+
     handleSubmit() {
         console.log('upload image state...')
         console.log(this.state.uploadedImage);
 
+        //TODO: image validation
+
         if (this.state.uploadedImage !== null) {
             const data = new FormData();
             const file = this.state.uploadedImage;
+            data.append('id', this.state.id);
             data.append('file', file);
             console.log("data object's file field...");
             console.log(data.values());
@@ -57,6 +111,10 @@ export class ChangeImage extends React.Component {
                     //TODO: redirect to an error page - currently still says it submits successfully on the front end
                 }
                 console.log(response.statusText);
+
+                //if no errors, redirect to details
+                //TODO: test this redirecting
+                this.setState({ redirectToDetails: <Redirect to={"/dogs/details/" + this.state.id} /> });
             }).then((data) => {
                 console.log(data);
             })
@@ -69,19 +127,16 @@ export class ChangeImage extends React.Component {
     render() {
         return (
             <div>
+                {this.state.redirectToDetails}
+
                 <h2>Change Image</h2>
-                <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
                 <div>
                     <img src={this.state.imageSource} alt="dog profile picture" />
                 </div>
-                <div className="form-group files">
-                    <input type="file" id="image" name="image" className="form-control" multiple="" accept="image/*" onChange={this.handleImageUpload} />
-                    <label htmlFor="image">Image Upload: </label>
-                    <span id="nameError"></span>
-                </div>
+                <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
 
-                <Link to={"/dogs/details/" + this.state.id}><button className="btn btn-light">Cancel</button></Link>
-                <button type="submit" className="btn btn-primary" onClick={this.handleSubmit}>Update Image</button>
+                {this.state.pageContent}
+
 
             </div>
         );

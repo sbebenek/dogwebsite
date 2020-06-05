@@ -8,6 +8,8 @@ const mysql = require("mysql");
 const bodyParser = require("body-parser");
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const crypto = require('crypto'); //required for random 'unique' multer file naming
+const mime = require("mime"); //required for random 'unique' multer file naming
 const cors = require('cors');
 
 const app = express();
@@ -42,7 +44,11 @@ const storage = multer.diskStorage({
         cb(null, path.join(__dirname, '/client/public/images')) //TODO: change this to the build folder once the react app is built
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname)
+        //https://github.com/expressjs/multer/issues/170#issuecomment-123362345
+        //generate a random unique name based on the current date/time
+        crypto.pseudoRandomBytes(16, function (err, raw) {
+            cb(null, raw.toString('hex') + Date.now() + '.' + mime.extension(file.mimetype));
+        });
     }
 });
 const upload = multer({ storage: storage }).single('file');
@@ -177,6 +183,9 @@ app.put('/api/dogs/update/:id', authenticateToken, (req, res) => {
 app.post('/api/upload', authenticateToken, (req, res) => {
     console.log("-----");
     console.log("file being uploaded...");
+    //TODO: before uploading, validate image is an image filetype and is a small enough file size
+    //respond with an error code if not valid. Do client-side validation as well
+
     //react & express file upload - https://programmingwithmosh.com/javascript/react-file-upload-proper-server-side-nodejs-easy/
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
@@ -189,6 +198,25 @@ app.post('/api/upload', authenticateToken, (req, res) => {
             return res.status(500).json(err);
         }
         console.log(req.body);
+        console.log("new file name - " + req.file.filename);
+
+        //TODO: delete old image, if that image exists
+
+        //now, add that file name to this id's database entry
+        mysqlConnection.query("UPDATE dogs SET dogimageref = ? WHERE dogid = ?;", [
+            req.file.filename,
+            req.body.id
+        ], (err, result, fields) => {
+            if (!err) {
+                console.log("Dog entry at id " + req.body.id + " has had its image sucessfully updated to " + req.file.filename);
+                res.status(200);
+            }
+            else {
+                res.send(err);
+                console.log(err);
+            }
+        });
+
 
         console.log("File sucessfully uploaded. Check the /public/images folder!");
         return res.status(200).send(req.file);
@@ -206,6 +234,10 @@ app.delete('/api/dogs/delete/:id', authenticateToken, (req, res) => {
             message: 'Invalid or missing ID'
         });
     }
+
+    //TODO: delete image associated with this entry, if it exists
+
+
     //else, id is valid
     mysqlConnection.query("DELETE FROM dogs WHERE dogid = ?", [
         req.params.id

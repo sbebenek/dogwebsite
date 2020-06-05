@@ -39,6 +39,7 @@ export class MasterPage extends React.Component {
 
     }
     componentWillMount() {
+        document.title = "Dog Website";
         this.checkCookies();
     }
 
