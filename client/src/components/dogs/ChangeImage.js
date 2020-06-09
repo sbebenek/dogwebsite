@@ -2,10 +2,12 @@ import React from 'react';
 import { Redirect, Link } from 'react-router-dom';
 
 export class ChangeImage extends React.Component {
-    
+
     constructor(props) {
         super(props);
         this.state = {
+            userIsAdmin: parseInt(this.props.isAdmin),
+
             errorMessage: "",
             isAdmin: parseInt(this.props.isAdmin),
             id: this.props.match.params.id,
@@ -17,10 +19,26 @@ export class ChangeImage extends React.Component {
         }
         this.handleImageUpload = this.handleImageUpload.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.checkIfSignedIn = this.checkIfSignedIn.bind(this);
     }
 
-    //TODO: redirect if not an admin
+    //check if an admin is signed in on page load
+    checkIfSignedIn() {
+        if (this.state.userIsAdmin === 0) {
+            //redirect if admin isnt signed in
+            this.setState({ redirectToDetails: <Redirect to={"/dogs/details/" + this.state.id} /> });
+        }
+    }
 
+    //will call whenever new props are received
+    componentDidUpdate(prevProps) {
+        console.log("Add Page received new props!");
+        // Typical usage (don't forget to compare props):
+        if (this.props.isAdmin !== prevProps.isAdmin) {
+            console.log("The new prop was different from the old one - new isAdmin: " + this.props.username)
+            this.setState({ userIsAdmin: parseInt(this.props.isAdmin) });
+        }
+    }
 
 
 
@@ -31,19 +49,18 @@ export class ChangeImage extends React.Component {
      * @param {*} event 
      */
     handleImageUpload(event) {
-        console.log("file size - " + event.target.files[0].size + ". megabytes - " + event.target.files[0].size/1000000);
-        
+        console.log("file size - " + event.target.files[0].size + ". megabytes - " + event.target.files[0].size / 1000000);
+
         //IMAGE VALIDATION
         //source - https://www.codexworld.com/file-type-extension-validation-javascript/ 
         var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
         if (!allowedExtensions.exec(event.target.files[0].name)) {
             console.log("An invalid file type tried to be uploaded - " + event.target.files[0].name);
-            this.setState({ errorMessage: 'Invalid filetype: jpg, jpeg, png, or gif only.'});
+            this.setState({ errorMessage: 'Invalid filetype: jpg, jpeg, png, or gif only.' });
         }
-        else if (event.target.files[0].size/1000000 > 2.5)
-        {
+        else if (event.target.files[0].size / 1000000 > 2.5) {
             console.log("Filesize > 2.5 mb - too large.");
-            this.setState({ errorMessage: 'File size too large. Must be smaller than 2.5mb. Your file is approx. ' + event.target.files[0].size/1000000 + "mb"});
+            this.setState({ errorMessage: 'File size too large. Must be smaller than 2.5mb. Your file is approx. ' + event.target.files[0].size / 1000000 + "mb" });
         }
         else { //correct file type and file size. Save to local storage.
             this.setState({
@@ -81,7 +98,6 @@ export class ChangeImage extends React.Component {
                         this.setState({ imageSource: '/images/' + result[0].dogimageref });
                     }
                     //setting the content of the page
-                    //TODO: print image
                     this.setState({
                         pageContent: (
                             <div>
@@ -111,7 +127,6 @@ export class ChangeImage extends React.Component {
         console.log('upload image state...')
         console.log(this.state.uploadedImage);
 
-        //TODO: image validation
 
         if (this.state.uploadedImage !== null) {
             const data = new FormData();
@@ -140,7 +155,6 @@ export class ChangeImage extends React.Component {
                 console.log(response.statusText);
 
                 //if no errors, redirect to details
-                //TODO: test this redirecting
                 this.setState({ redirectToDetails: <Redirect to={"/dogs/details/" + this.state.id + "?cmd=updated"} /> });
             }).then((data) => {
                 console.log(data);
@@ -162,6 +176,7 @@ export class ChangeImage extends React.Component {
     render() {
         return (
             <div>
+                {this.checkIfSignedIn()}
                 {this.state.redirectToDetails}
 
                 <h2>Change Image</h2>

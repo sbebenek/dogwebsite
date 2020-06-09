@@ -12,6 +12,7 @@ const crypto = require('crypto'); //required for random 'unique' multer file nam
 const mime = require("mime"); //required for random 'unique' multer file naming
 const cors = require('cors');
 const fs = require('fs'); //filesystem, needed to delete image files
+const bcrypt = require('bcryptjs'); //required for login password hashing
 
 const app = express();
 app.use(bodyParser.json());
@@ -59,14 +60,14 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
     storage: storage,
-    limits: {fileSize: 2500000},
+    limits: { fileSize: 2500000 },
     fileFilter: (req, file, cb) => {
         if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/gif") {
             console.log("Image upload validation passed. file type = " + file.mimetype);
             cb(null, true);
-        } 
+        }
         else {
-            console.log("image upload validation failed. file type = " + file.mimetype + ", file size = " + file.size/1000000 + "mb. Either wrong file type or size > 2.5mb");
+            console.log("image upload validation failed. file type = " + file.mimetype + ", file size = " + file.size / 1000000 + "mb. Either wrong file type or size > 2.5mb");
             cb(null, false);
             return cb(new Error('Validation failed. Image invalid file type - ' + file.mimetype));
         }
@@ -128,8 +129,11 @@ app.post('/api/dogs/add', authenticateToken, (req, res) => {
         location
     ], (err, result, fields) => {
         if (!err) {
-            //TODO: Send new dog id to the front end, so it can redirect to its new details page
-            res.send("success");
+            let response = {
+                id: result.insertId
+            }
+            res.json(response);
+            console.log("result id = " + result.insertId);
             console.log("Dog entry was successfully added to the database with these values: " + name + ', ' + breed + ', ' + gender + ', ' + age + ', ' + weight + ', ' + color);
         }
         else {
@@ -380,15 +384,18 @@ app.post('/api/accounts/signin', (req, res) => {
      * STEPS:
      * 1. authenticate user by comparing username and password to entries in the database
      */
-    mysqlConnection.query("SELECT * FROM accounts WHERE accountusername = ? AND accountpassword = ?", [
-        req.body.username,
-        req.body.password
+    mysqlConnection.query("SELECT * FROM accounts WHERE accountusername = ?", [
+        req.body.username
     ], (err, result, fields) => {
         if (!err) {
             if (result.length === 0) {
                 console.log("No entry with that username and password found.");
                 console.log(result);
                 res.json(result);
+            }
+            else if (bcrypt.compareSync(req.body.password, result[0].accountpassword) === false) {
+                console.log("Incorrect password for username");
+                res.json(null); //wrong way to do this but front end expects an empty response for invalid passwords
             }
             else {
                 const user = {
@@ -443,6 +450,11 @@ app.delete('/api/accounts/signout', (req, res) => {
     res.sendStatus(204);
 });
 
+
+
+/**
+ * NOTE: if I want to add an add new account enpoint in the future, i will need to hash the password before adding it to the database
+ */
 
 
 //********************************************************************************************************************************************************************************/

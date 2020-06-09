@@ -19,7 +19,7 @@ export class Add extends React.Component {
             description: '',
             location: '',
             //imageref: '',
-            redirectToList: false,
+            redirectToDetails: '',
             redirectToLogin: false,
             errorMessage: errorMessage
         };
@@ -57,14 +57,7 @@ export class Add extends React.Component {
             [name]: value
         });
     }
-    //called when data is successfully added to the database
-    successMessage(data) {
-        console.log(data);
-        this.setState({ errorMessage: "Successfully added to the database", redirectToList: true });
-        if (data === "success") {
-            console.log("data successfully sent to server");
-        }
-    }
+   
     //called when there is an error adding data to the database
     failureMessage(err) {
         console.log("Error adding to the database");
@@ -97,6 +90,7 @@ export class Add extends React.Component {
                 description: this.state.description,
                 location: this.state.location
             }
+            console.log("sending this data to the server...");
             console.log(data)
             fetch("/api/dogs/add", {
                 method: 'POST',
@@ -116,12 +110,25 @@ export class Add extends React.Component {
                 if (response.status >= 400) {
                     throw new Error("Bad response from server");
                 }
+                console.log("printing server response...");
                 console.log(response);
-            }).then(this.successMessage(data))
+                console.log(response.body);
+                return response.json();
+            }).then(data => this.successMessage(data))
                 .catch(function (err) {
                     console.log(err);
                 });
         }
+    }
+
+     //called when data is successfully added to the database
+     successMessage(data) {
+        console.log("printing parsed data...");
+        console.log(data);
+        console.log("Dog successfully added to database");
+        //TODO: redirect to this dogs details page
+        this.setState({ errorMessage: "Successfully added to the database", redirectToDetails: <Redirect to={"/dogs/details/"+ data.id + "?cmd=added"} /> });
+
     }
 
 
@@ -129,13 +136,12 @@ export class Add extends React.Component {
         if(this.state.redirectToLogin === true) {
             return <Redirect to='/signin' />
         }
-        if (this.state.redirectToList === true) {
-            return <Redirect to='/dogs?cmd=added' />
-        }
+
         
         { this.checkIfSignedIn() }
         return (
             <div>
+                {this.state.redirectToDetails}
                 <h2>Add New Dog</h2>
                 <form action="" onSubmit={this.handleSubmit} noValidate>
                     <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
@@ -152,11 +158,11 @@ export class Add extends React.Component {
                     <div className="form-group">
 
                         <label htmlFor="gender">Gender: </label> <br />
-                        <div class="form-check">
+                        <div className="form-check">
                             <input className="form-check-input" type="radio" id="male" name="gender" value="Male" onChange={this.handleChange} checked />
                             <label className="form-check-label" htmlFor="male">Male</label>
                         </div>
-                        <div class="form-check">
+                        <div className="form-check">
                             <input className="form-check-input" type="radio" id="female" name="gender" onChange={this.handleChange} value="Female" />
                             <label className="form-check-label" htmlFor="female">Female</label><br />
                         </div>

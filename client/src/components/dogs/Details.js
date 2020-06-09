@@ -36,6 +36,19 @@ export class Details extends React.Component {
 
     }
 
+    componentWillMount() {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        if (urlParams.get('cmd') != null) {
+            if (urlParams.get('cmd') === "added") {
+                this.setState({ commandPanel: <div className="alert alert-success" role="alert">Dog was successfully added!</div> });
+            }
+            if (urlParams.get('cmd') === "updated") {
+                this.setState({ commandPanel: <div className="alert alert-info" role="alert">Dog was successfully updated!</div> });
+            }
+        }
+    }
+
     componentDidUpdate(prevProps) {
         console.log("Dog Details Page received new props!");
         // Typical usage (don't forget to compare props):
@@ -78,7 +91,6 @@ export class Details extends React.Component {
                         this.setState({ imageSource: '/images/' + result[0].dogimageref });
                     }
                     //setting the content of the page
-                    //TODO: print image
                     this.setState({
                         pageContent: (
                             <div>
@@ -127,7 +139,6 @@ export class Details extends React.Component {
         else return '';
     }
 
-    //TODO: get jwt token from props
     
     handleDelete(id) {
         //TODO: this should be put in details once that is done
@@ -178,6 +189,7 @@ export class Details extends React.Component {
             <div>
                 {this.state.redirectHolder}
                 <Link to="/dogs"><button className="btn btn-sm btn-light">Go Back</button></Link>
+                {this.state.commandPanel}
                 <h2>Details</h2>
                 {this.state.pageContent}
                 {/*<!-- Modal --> https://bit.dev/react-bootstrap/react-bootstrap/modal*/}

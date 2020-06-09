@@ -48,12 +48,10 @@ export class List extends React.Component {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         if (urlParams.get('cmd') != null) {
-            if (urlParams.get('cmd') === "added") {
-                this.setState({ commandMessage: <div>Dog was successfully added! This should probably be put in the dog's details instead</div> });
+            if (urlParams.get('cmd') === "deleted") {
+                this.setState({ commandMessage: <div className="alert alert-danger" role="alert">Dog was successfully deleted.</div> });
             }
-            if (urlParams.get('cmd') === "updated") {
-                this.setState({ commandMessage: <div>Dog was successfully updated! This should probably be put in the dog's details instead</div> });
-            }
+            
         }
         //setting the table placeholder everytime the component loads
         this.setState({ tableHolder: <div>Loading...</div> });

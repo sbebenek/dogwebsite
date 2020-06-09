@@ -1,5 +1,6 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
+const bcrypt = require('bcryptjs');
 
 //global variables
 
@@ -24,8 +25,7 @@ export class SignIn extends React.Component {
 
     //if a user is signed in, signedInUsername will not be null
     checkIfSignedIn() {
-        if(this.state.signedInUsername !== null)
-        {
+        if (this.state.signedInUsername !== null) {
             this.setState({ redirectToHome: <Redirect to='/' /> });
         }
     }
@@ -65,14 +65,19 @@ export class SignIn extends React.Component {
         }
         else {
             console.log("form valid!");
+
+            //Bcrypt states that best hashing password is sending password over with SSL and hashing there
+            /*let hashedPassword = bcrypt.hash(this.state.password, 8)
+            console.log(hashedPassword);*/
+
             //setting the data being posted to the server
             let data = {
                 username: this.state.username,
                 password: this.state.password
             }
-            console.log(data);
+            //console.log(data);
 
-            this.setState({errorMessage: "Loading..."});
+            this.setState({ errorMessage: "Loading..." });
             fetch("/api/accounts/signin", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -85,20 +90,24 @@ export class SignIn extends React.Component {
                 return response.json();
             }).then((result) => {
                 console.log(result);
-                if (result.length === 0) {
+                if(result === null) {
+                    //not the best way to do 2 if statements that do the same thing
                     console.log("no username/password combo found");
-                    this.setState({errorMessage: "Invalid username/password."});
+                    this.setState({ errorMessage: "Invalid username/password." });
+                }
+                else if (result.length === 0) {
+                    console.log("no username/password combo found");
+                    this.setState({ errorMessage: "Invalid username/password." });
                 }
                 else {
                     console.log("Username/password combo found!");
                     console.log("Result: " + result)
-                    this.setState({errorMessage: "Welcome, " + result.username + "!"});
-                    //TODO: store the jwt token and refresh tokens as cookies, store the result fields as state variables in MasterPage.js, then redirect to home
-                    document.cookie = "username="+result.username+";max-age=2592000";
-                    document.cookie = "isadmin="+result.isadmin+";max-age=2592000";
-                    document.cookie = "jwtToken="+result.jwtToken+";max-age=2592000";
-                    document.cookie = "refreshToken="+result.refreshToken+";max-age=2592000";
-                    console.log("Cookie from sign in: "+document.cookie);
+                    this.setState({ errorMessage: "Welcome, " + result.username + "!" });
+                    document.cookie = "username=" + result.username + ";max-age=2592000";
+                    document.cookie = "isadmin=" + result.isadmin + ";max-age=2592000";
+                    document.cookie = "jwtToken=" + result.jwtToken + ";max-age=2592000";
+                    document.cookie = "refreshToken=" + result.refreshToken + ";max-age=2592000";
+                    console.log("Cookie from sign in: " + document.cookie);
                     this.props.signin();
                     this.setState({ redirectToHome: <Redirect to='/' /> });
                 }
@@ -110,10 +119,10 @@ export class SignIn extends React.Component {
     }
 
     render() {
-        
-        {this.checkIfSignedIn()}   
+
         return (
             <div>
+                {this.checkIfSignedIn()}
                 {this.state.redirectToHome}
                 <h1>Sign In</h1>
                 <p id="loginError"></p>
