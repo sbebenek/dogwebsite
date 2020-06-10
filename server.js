@@ -105,6 +105,22 @@ app.get('/api/dogs/list', (req, res) => {
     });
 });
 
+//api endpoint that returns the 3 newest dog entries in the database
+app.get('/api/dogs/new', (req,res) => {
+    mysqlConnection.query("SELECT * FROM dogs ORDER BY dogid DESC LIMIT 3", (err, result, fields) => {
+        if(!err) {
+            res.json(result);
+            console.log("-----");
+            console.log("Sent list of 3 newest dogs from the database");
+        }
+        else {
+            console.log(err);
+            res.json(err);
+        }
+    });
+});
+
+
 //api endpoint that adds a dog to the database
 app.post('/api/dogs/add', authenticateToken, (req, res) => {
     console.log("-----");

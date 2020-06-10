@@ -15,7 +15,11 @@ export class List extends React.Component {
             isAdmin: parseInt(this.props.isAdmin),
             list: [],
             commandMessage: '',
-            tableHolder: <div>Loading...</div>,
+            tableHolder: (
+                <div class="spinner-border text-success" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            ),
             redirectHolder: ''
         }
         this.handleDelete = this.handleDelete.bind(this);
@@ -51,10 +55,10 @@ export class List extends React.Component {
             if (urlParams.get('cmd') === "deleted") {
                 this.setState({ commandMessage: <div className="alert alert-danger" role="alert">Dog was successfully deleted.</div> });
             }
-            
+
         }
         //setting the table placeholder everytime the component loads
-        this.setState({ tableHolder: <div>Loading...</div> });
+        //this.setState({ tableHolder: <div>Loading...</div> });
     }
 
     // Fetch the list on first mount
@@ -170,7 +174,7 @@ export class List extends React.Component {
                     {this.state.redirectHolder}
                     <h1>Dogs</h1>
                     {this.state.commandMessage}
-                    <p>Here is a list of all the dogs in our system.</p>
+                    <p>Here is a list of all the dogs currently available.</p>
                     {this.checkIfAdmin()}
 
                     {this.state.tableHolder}

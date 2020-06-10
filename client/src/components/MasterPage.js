@@ -88,40 +88,45 @@ export class MasterPage extends React.Component {
 
                 <WebsiteHeader username={this.state.username} signout={this.signOut} />
                 <div className="page-wrapper">
-                    <Switch>
-                        {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
+
+                    <img className="dog-banner" src="dog-banner.jpg" alt="dog website banner - some dogs playing" />
+
+                    <div className="content-holder">
+                        <Switch>
+                            {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
                     </Route>*/}
-                        <Route exact path="/dogs" render={(props) => (
-                            <List {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken}/>
-                        )}>
-                        </Route>
-                        <Route exact path="/dogs/details/:id" render={(props) => (
-                            <Details {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut}/>
-                        )}></Route>
-                        <Route exact path="/dogs/add" render={(props) => (
-                            <Add {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut}/>
-                        )}>
-                        </Route>
-                        <Route exact path="/dogs/update/:id" render={(props) => (
-                            <Update {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
-                        )}>
-                        </Route>
-                        <Route exact path="/dogs/changeimage/:id" render={(props) => (
-                            <ChangeImage {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
-                        )}>
-                        </Route>
-                        <Route exact path="/contact">
-                            <Contact />
-                        </Route>
-                        <Route exact path="/signin" render={(props) => (
-                            <SignIn {...props} signin={this.checkCookies} username={this.state.username} />
-                        )} >
-                        </Route>
-                        <Route path="/" exact>
-                            <Home />
-                        </Route>
-                        <Route component={NoMatch} />
-                    </Switch>
+                            <Route exact path="/dogs" render={(props) => (
+                                <List {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} />
+                            )}>
+                            </Route>
+                            <Route exact path="/dogs/details/:id" render={(props) => (
+                                <Details {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
+                            )}></Route>
+                            <Route exact path="/dogs/add" render={(props) => (
+                                <Add {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
+                            )}>
+                            </Route>
+                            <Route exact path="/dogs/update/:id" render={(props) => (
+                                <Update {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
+                            )}>
+                            </Route>
+                            <Route exact path="/dogs/changeimage/:id" render={(props) => (
+                                <ChangeImage {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
+                            )}>
+                            </Route>
+                            <Route exact path="/contact">
+                                <Contact />
+                            </Route>
+                            <Route exact path="/signin" render={(props) => (
+                                <SignIn {...props} signin={this.checkCookies} username={this.state.username} />
+                            )} >
+                            </Route>
+                            <Route path="/" exact>
+                                <Home />
+                            </Route>
+                            <Route component={NoMatch} />
+                        </Switch>
+                    </div>
                 </div>
 
             </Router>
