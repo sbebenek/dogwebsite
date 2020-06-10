@@ -39,20 +39,22 @@ export class Home extends React.Component {
                                 dogImage = "/images/" + item.dogimageref
                             }
                             return (
-                                <div key={item.dogid} className="dog-card">
+                                <div key={item.dogid} className="dog-card mb-5">
                                     <div>
                                         <img src={dogImage} alt={item.dogname + "'s profile photo"} />
-                                        <strong>{item.dogname}</strong>
-                                        {item.doggender}
-                                        {item.doglocation}
-                                        <Link to={"/dogs/details/" + item.dogid}>Details &#8594;</Link>
+                                        <div className="mt-3">
+                                            <div><strong>{item.dogname}</strong></div>
+                                            <div>{item.doglocation}</div>
+                                            <div>{item.dogage} year old {item.doggender} {item.dogbreed}</div>
+                                            <Link to={"/dogs/details/" + item.dogid}>Details &#8594;</Link>
+                                        </div>
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
-                    <div className="float-right">
-                        <Link to="/dogs">See More &#8594;</Link>
+                    <div className="right pb-5">
+                        <Link to="/dogs"><button className="btn btn-success">See All Dogs</button></Link>
                     </div>
                 </div>
             )
@@ -62,7 +64,7 @@ export class Home extends React.Component {
     render() {
         return (
             <div className="home-content-holder">
-                <div className="center mb-5">
+                <div className="center pb-5">
                     <h1 style={{ textAlign: "center" }}>Find Your Next Furry Friend</h1>
                 </div>
                 <div className="home-image-holder mb-4">
