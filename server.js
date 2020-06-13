@@ -19,6 +19,8 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(cors());
 
+app.use('/public', express.static(path.join(__dirname,'/client/public')));
+
 
 //MYSQL CONNECTION DONE HERE - source https://www.youtube.com/watch?v=xn9ef5pod18&list=LLi27Shmiim3B-lLFh8XjLTQ&index=2
 //database connection is made upon server start
@@ -47,7 +49,7 @@ mysqlConnection.connect((err) => {
 //MULTER INSTANCE
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '/client/public/images')) //TODO: change this to the build folder once the react app is built
+        cb(null, path.join(__dirname, '/client/public/images')) 
     },
 
     filename: function (req, file, cb) {

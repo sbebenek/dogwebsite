@@ -30,10 +30,10 @@ export class Home extends React.Component {
     //this function draws the dogs in this.state.dogList to the this.state.dogHolder as JSX elements
     drawDogList() {
         //create the delay style animation
-        let delay=0; //change this number to change the delay start
+        let delay=1.5; //change this number to change the delay start
         this.state.dogList.forEach(element => {
             element.order = delay;
-            delay += 0.3;
+            delay += 0.1;
         });
 
         //creates a custom style based on the given delay (in seconds)
@@ -56,10 +56,10 @@ export class Home extends React.Component {
                 <div>
                     <div className="home-image-holder">
                         {this.state.dogList.map((item) => {
-                            let dogImage = "/images/default.jpg";
+                            let dogImage = encodeURI("../public/images/default.jpg");
                             if (item.dogimageref !== "" && item.dogimageref !== null) {
                                 dogImage = 
-                                "/images/" + item.dogimageref
+                                encodeURI("../public/images/" + item.dogimageref);
                             }
                             let age = item.dogage;
                             if(Number(item.dogage) <1)
@@ -96,9 +96,9 @@ export class Home extends React.Component {
                     <h1 style={{ textAlign: "center" }}>Find Your Next Furry Friend</h1>
                 </div>
                 <div className="home-image-holder mb-4">
-                    <img className="img-responsive" src="dog2.jpg" alt="a nice dog" />
-                    <img className="img-responsive" src="dog1.jpg" alt="another nice dog" />
-                    <img className="img-responsive" src="dog3.jpg" alt="a third nice dog" />
+                    <img className="img-responsive" id="dog-one" src="dog2.jpg" alt="a nice dog" />
+                    <img className="img-responsive" id="dog-two" src="dog1.jpg" alt="another nice dog" />
+                    <img className="img-responsive" id="dog-three" src="dog3.jpg" alt="a third nice dog" />
                 </div>
                 <div className="center" style={{ textAlign: "center" }}>
                     <p>Owning a dog can be one of the most rewarding experiences someone can have. All around the GTA, many dogs are looking for homes to call their own.

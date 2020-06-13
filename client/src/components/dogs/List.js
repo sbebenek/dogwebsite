@@ -42,7 +42,7 @@ export class List extends React.Component {
         console.log("is user admin - " + this.state.isAdmin);
         if (this.state.isAdmin === 1) {
             console.log("user is admin!");
-            return <Link to={this.props.match.path + "/add"}><button className="btn btn-success">Add New Dog</button></Link>;
+            return <Link to={"/dogs/add"}><button className="btn btn-success">Add New Dog</button></Link>;
         }
         else return '';
     }
@@ -228,9 +228,9 @@ export class List extends React.Component {
                     </nav>
                     <div className="list-card-holder">
                         {dogSubList.map((item) => {
-                            let dogImage = "/images/default.jpg";
+                            let dogImage = encodeURI("../public/images/default.jpg");
                             if (item.dogimageref !== "" && item.dogimageref !== null) {
-                                dogImage = "/images/" + item.dogimageref
+                                dogImage = encodeURI("../public/images/" + String(item.dogimageref))
                             }
                             let age = item.dogage;
                             if (Number(item.dogage) < 1) {

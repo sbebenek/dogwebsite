@@ -24,7 +24,7 @@ export class Details extends React.Component {
             description: '',
             location: '',
             //imageref: ''
-            imageSource: '/images/default.jpg',
+            imageSource: encodeURI("../../public/images/default.jpg"),
             show: false, //whether or not the modal is showing
             deleteButtonHolder: '',
             redirectHolder: '',
@@ -93,7 +93,7 @@ export class Details extends React.Component {
                     if (result[0].dogimageref !== null && result[0].dogimageref !== "") {
                         //if the dog has a reference image, use it
                         console.log("dog image ref found - " + result[0].dogimageref);
-                        this.setState({ imageSource: '/images/' + result[0].dogimageref });
+                        this.setState({ imageSource: encodeURI("../../public/images/" + result[0].dogimageref) });
                     }
                     //setting the content of the page
                     this.setState({

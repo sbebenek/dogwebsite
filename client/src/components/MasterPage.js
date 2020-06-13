@@ -1,3 +1,10 @@
+/**
+ * NOTE TO FUTURE SAM - all the src's for the images had to be changed to uriEncode(../public/images/imagename.jpg) or uriEncode(../../public/images/imagename.jpg)
+ * because in the production build, those url's without the '../''s would link to localhost/dogs/public/images/imagename.jpg . The '../'s' were used to get out of
+ * that dog folder and actually access the public folder itself. Multiple '../'s were used because they had different file depths on different pages i needed to get out of 
+ */
+
+
 //import React
 import React from 'react';
 //import the react routing functionality - source: https://reacttraining.com/react-router/web/guides/quick-start
@@ -97,6 +104,10 @@ export class MasterPage extends React.Component {
                         <Switch>
                             {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
                     </Route>*/}
+                            <Route exact path="/dogs/add" render={(props) => (
+                                <Add {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
+                            )}>
+                            </Route>
                             <Route exact path="/dogs" render={(props) => (
                                 <List {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} />
                             )}></Route>
@@ -107,10 +118,7 @@ export class MasterPage extends React.Component {
                             <Route exact path="/dogs/details/:id" render={(props) => (
                                 <Details {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
                             )}></Route>
-                            <Route exact path="/dogs/add" render={(props) => (
-                                <Add {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
-                            )}>
-                            </Route>
+
                             <Route exact path="/dogs/update/:id" render={(props) => (
                                 <Update {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} signOut={this.signOut} />
                             )}>

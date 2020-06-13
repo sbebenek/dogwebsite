@@ -29,7 +29,7 @@ export class Contact extends React.Component {
                 <p>If you are a shelter representative or private dog fosterer and want to get in contact with us, please fill out the form below. Any other questions or concerns are also
                 welcome. One of our team members will get back to you as soon as possible!
                 </p>
-                <p><em>Note: this form is for demonstration purposes only, and messages will not be sent or read by anyone. For more information, see the <Link to="/">About Us</Link> page.</em></p>
+                <p><em>Note: this form is for demonstration purposes only, and messages will not be sent or read by anyone. For more information, see the <Link to="/about">About Us</Link> page.</em></p>
                 <div className="dog-form">
                     <div className="form-group">
                         <label htmlFor="email">Your Email Adress: <span className="text-danger">*</span> </label>

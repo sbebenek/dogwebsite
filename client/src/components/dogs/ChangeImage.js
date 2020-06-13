@@ -12,7 +12,7 @@ export class ChangeImage extends React.Component {
             isAdmin: parseInt(this.props.isAdmin),
             id: this.props.match.params.id,
             uploadedImage: null,
-            imageSource: '/images/default.jpg',
+            imageSource: encodeURI("../../public/images/default.jpg"),
 
             redirectToDetails: '',
             pageContent: <div>Loading...</div>
@@ -95,7 +95,7 @@ export class ChangeImage extends React.Component {
                     if (result[0].dogimageref !== null && result[0].dogimageref !== "") {
                         //if the dog has a reference image, use it
                         console.log("dog image ref found - " + result[0].dogimageref);
-                        this.setState({ imageSource: '/images/' + result[0].dogimageref });
+                        this.setState({ imageSource: encodeURI("../../public/images/" + String(result[0].dogimageref)) });
                     }
                     //setting the content of the page
                     this.setState({
@@ -104,7 +104,7 @@ export class ChangeImage extends React.Component {
 
                                 <div className="form-group files">
                                     <label htmlFor="image">Image Upload: </label>
-                                    <input type="file" id="image" name="image" className="form-control" multiple="" accept="image/*" onChange={this.handleImageUpload} />
+                                    <input type="file" id="image" name="image" className="form-control-file" multiple="" accept="image/*" onChange={this.handleImageUpload} />
                                     <span id="nameError"></span>
                                 </div>
 
