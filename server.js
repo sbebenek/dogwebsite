@@ -536,9 +536,10 @@ function userIsAdmin(req) {
 }
 
 
-const port = process.env.PORT || 3000;
-app.listen(port);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Express App is running and listening on port ${PORT}`);
+});
 
 //old non-heroku way
 //console.log('Express App is running and listening on port ' + port);
-console.log(`Express App is running and listening on port ${port}`);
