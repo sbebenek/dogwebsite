@@ -29,6 +29,28 @@ export class Home extends React.Component {
 
     //this function draws the dogs in this.state.dogList to the this.state.dogHolder as JSX elements
     drawDogList() {
+        //create the delay style animation
+        let delay=0; //change this number to change the delay start
+        this.state.dogList.forEach(element => {
+            element.order = delay;
+            delay += 0.3;
+        });
+
+        //creates a custom style based on the given delay (in seconds)
+        function style(delay) {
+            return {
+                animationName: 'cardAppear',
+                animationTimingFunction: 'ease-in-out',
+                animationDuration: '0.3s',
+                animationDelay: delay + 's',
+                animationIterationCount: 1,
+                animationDirection: 'normal',
+                animationFillMode: 'forwards'
+            }
+        };
+
+
+
         this.setState({
             dogHolder: (
                 <div>
@@ -36,16 +58,22 @@ export class Home extends React.Component {
                         {this.state.dogList.map((item) => {
                             let dogImage = "/images/default.jpg";
                             if (item.dogimageref !== "" && item.dogimageref !== null) {
-                                dogImage = "/images/" + item.dogimageref
+                                dogImage = 
+                                "/images/" + item.dogimageref
+                            }
+                            let age = item.dogage;
+                            if(Number(item.dogage) <1)
+                            {
+                                age = "<1"
                             }
                             return (
-                                <div key={item.dogid} className="dog-card mb-5">
+                                <div key={item.dogid} className="dog-card mb-5" style={style(item.order)}>
                                     <div>
                                         <img src={dogImage} alt={item.dogname + "'s profile photo"} />
                                         <div className="mt-3">
                                             <div><strong>{item.dogname}</strong></div>
                                             <div>{item.doglocation}</div>
-                                            <div>{item.dogage} year old {item.doggender} {item.dogbreed}</div>
+                                            <div>{age} year old {item.doggender} {item.dogbreed}</div>
                                             <Link to={"/dogs/details/" + item.dogid}>Details &#8594;</Link>
                                         </div>
                                     </div>
@@ -68,9 +96,9 @@ export class Home extends React.Component {
                     <h1 style={{ textAlign: "center" }}>Find Your Next Furry Friend</h1>
                 </div>
                 <div className="home-image-holder mb-4">
-                    <img src="dog2.jpg" alt="a nice dog" />
-                    <img src="dog1.jpg" alt="another nice dog" />
-                    <img src="dog3.jpg" alt="a third nice dog" />
+                    <img className="img-responsive" src="dog2.jpg" alt="a nice dog" />
+                    <img className="img-responsive" src="dog1.jpg" alt="another nice dog" />
+                    <img className="img-responsive" src="dog3.jpg" alt="a third nice dog" />
                 </div>
                 <div className="center" style={{ textAlign: "center" }}>
                     <p>Owning a dog can be one of the most rewarding experiences someone can have. All around the GTA, many dogs are looking for homes to call their own.

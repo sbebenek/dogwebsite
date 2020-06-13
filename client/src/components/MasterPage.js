@@ -14,6 +14,8 @@ import { Add } from './dogs/Add';
 import { Update } from './dogs/Update';
 import { ChangeImage } from './dogs/ChangeImage';
 
+
+import { About } from './About';
 import { Contact } from './Contact';
 import { SignIn } from './SignIn';
 import { NoMatch } from './NoMatch';
@@ -89,13 +91,16 @@ export class MasterPage extends React.Component {
                 <WebsiteHeader username={this.state.username} signout={this.signOut} />
                 <div className="page-wrapper">
 
-                    <img className="dog-banner" src="dog-banner.jpg" alt="dog website banner - some dogs playing" />
+                    <img className="dog-banner" src="/dog-banner.jpg" alt="dog website banner - some dogs playing" />
 
                     <div className="content-holder">
                         <Switch>
                             {/*<Route exact path="/dogs" component={withRouter(Dogs)}>
                     </Route>*/}
                             <Route exact path="/dogs" render={(props) => (
+                                <List {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} />
+                            )}></Route>
+                            <Route exact path="/dogs/:page" render={(props) => (
                                 <List {...props} isAdmin={this.state.isAdmin} jwtToken={this.state.jwtToken} />
                             )}>
                             </Route>
@@ -116,6 +121,9 @@ export class MasterPage extends React.Component {
                             </Route>
                             <Route exact path="/contact">
                                 <Contact />
+                            </Route>
+                            <Route exact path="/about">
+                                <About />
                             </Route>
                             <Route exact path="/signin" render={(props) => (
                                 <SignIn {...props} signin={this.checkCookies} username={this.state.username} />

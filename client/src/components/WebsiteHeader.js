@@ -65,7 +65,7 @@ export class WebsiteHeader extends React.Component {
             <header>
                 {this.state.redirectHome}
                 <nav className="navbar navbar-expand-lg header-background" >
-                    <Link to="/"><span className="navbar-brand custom-nav-item">&#x1f43e; Dog Website</span></Link>
+                    <Link to="/"><span className="navbar-brand custom-nav-item"><span role="img" aria-label="paw print emoji">&#x1f43e;</span> Dog Website</span></Link>
                     <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                         <span className="navbar-toggler-icon"></span>
                     </button>
@@ -80,6 +80,9 @@ export class WebsiteHeader extends React.Component {
                             </li>
                             <li className="nav-item">
                                 <Link to="/contact" className="nav-link custom-nav-item"><span className="">Contact</span></Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/about" className="nav-link custom-nav-item"><span className="">About Us</span></Link>
                             </li>
 
 

@@ -103,8 +103,8 @@ export class ChangeImage extends React.Component {
                             <div>
 
                                 <div className="form-group files">
-                                    <input type="file" id="image" name="image" className="form-control" multiple="" accept="image/*" onChange={this.handleImageUpload} />
                                     <label htmlFor="image">Image Upload: </label>
+                                    <input type="file" id="image" name="image" className="form-control" multiple="" accept="image/*" onChange={this.handleImageUpload} />
                                     <span id="nameError"></span>
                                 </div>
 
@@ -181,7 +181,7 @@ export class ChangeImage extends React.Component {
 
                 <h2>Change Image</h2>
                 <div>
-                    <img src={this.state.imageSource} alt="dog profile picture" />
+                    <img src={this.state.imageSource} className="change-image-image mb-5 mx-auto d-block" alt="dog profile picture" />
                 </div>
                 <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
 

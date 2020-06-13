@@ -103,10 +103,10 @@ export class SignIn extends React.Component {
                     console.log("Username/password combo found!");
                     console.log("Result: " + result)
                     this.setState({ errorMessage: "Welcome, " + result.username + "!" });
-                    document.cookie = "username=" + result.username + ";max-age=2592000";
-                    document.cookie = "isadmin=" + result.isadmin + ";max-age=2592000";
-                    document.cookie = "jwtToken=" + result.jwtToken + ";max-age=2592000";
-                    document.cookie = "refreshToken=" + result.refreshToken + ";max-age=2592000";
+                    document.cookie = "username=" + result.username + ";max-age=3600"; //cookie expires in one hour
+                    document.cookie = "isadmin=" + result.isadmin + ";max-age=3600";
+                    document.cookie = "jwtToken=" + result.jwtToken + ";max-age=3600";
+                    document.cookie = "refreshToken=" + result.refreshToken + ";max-age=3600";
                     console.log("Cookie from sign in: " + document.cookie);
                     this.props.signin();
                     this.setState({ redirectToHome: <Redirect to='/' /> });
@@ -127,7 +127,7 @@ export class SignIn extends React.Component {
                 <h1>Sign In</h1>
                 <p id="loginError"></p>
                 {/*noValidate allows you to automatically check if form fields are empty*/}
-                <form action="" onSubmit={this.handleSubmit} noValidate>
+                <form className="dog-form" action="" onSubmit={this.handleSubmit} noValidate>
                     <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
                     <div className="form-group">
                         <label htmlFor="username">Username: </label>

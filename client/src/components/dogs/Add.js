@@ -143,21 +143,21 @@ export class Add extends React.Component {
             <div>
                 {this.state.redirectToDetails}
                 <h2>Add New Dog</h2>
-                <form action="" onSubmit={this.handleSubmit} noValidate>
+                <form className="dog-form" action="" onSubmit={this.handleSubmit} noValidate>
                     <div style={{ color: "red" }} id="errorMessage">{this.state.errorMessage}</div>
                     <div className="form-group">
-                        <label htmlFor="name">Name: </label>
+                        <label htmlFor="name">Name: <span className="text-danger">*</span> </label>
                         <input className="form-control" type="text" name="name" id="name" value={this.state.name} onChange={this.handleChange} required />
                         <span id="nameError"></span>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="breed">Breed: </label>
+                        <label htmlFor="breed">Breed: <span className="text-danger">*</span></label>
                         <input className="form-control" type="text" name="breed" id="breed" value={this.state.breed} onChange={this.handleChange} required />
                         <span id="breedError"></span>
                     </div>
                     <div className="form-group">
 
-                        <label htmlFor="gender">Gender: </label> <br />
+                        <label htmlFor="gender">Gender: <span className="text-danger">*</span></label> <br />
                         <div className="form-check">
                             <input className="form-check-input" type="radio" id="male" name="gender" value="Male" onChange={this.handleChange} checked />
                             <label className="form-check-label" htmlFor="male">Male</label>
@@ -168,22 +168,22 @@ export class Add extends React.Component {
                         </div>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="age">Age: </label>
+                        <label htmlFor="age">Age (in years): <span className="text-danger">*</span></label>
                         <input className="form-control" type="number" name="age" id="age" value={this.state.age} onChange={this.handleChange} required />
                         <span id="ageError"></span>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="weight">Weight(lbs): </label>
+                        <label htmlFor="weight">Weight (lbs): <span className="text-danger">*</span></label>
                         <input className="form-control" type="number" name="weight" id="weight" step="0.01" value={this.state.weight} onChange={this.handleChange} required />
                         <span id="weightError"></span>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="color">Color: </label>
+                        <label htmlFor="color">Color: <span className="text-danger">*</span></label>
                         <input className="form-control" type="text" name="color" id="color" value={this.state.color} onChange={this.handleChange} required />
                         <span id="colorError"></span>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="location">Location: </label>
+                        <label htmlFor="location">Location: <span className="text-danger">*</span></label>
                         <input className="form-control" type="text" name="location" id="location" value={this.state.location} onChange={this.handleChange} required />
                         <span id="locationError"></span>
                     </div>

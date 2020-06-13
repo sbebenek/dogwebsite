@@ -16,15 +16,25 @@ export class List extends React.Component {
             list: [],
             commandMessage: '',
             tableHolder: (
-                <div class="spinner-border text-success" role="status">
-                    <span class="sr-only">Loading...</span>
+                <div className="d-flex justify-content-center">
+                    <div className="spinner-border text-success" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
                 </div>
             ),
-            redirectHolder: ''
+            redirectHolder: '',
+
+            currentlySelectedDogs: [],
+
+            currentPage: 1,
+            pageCount: 1,
+            pageLinks: [],
+            elementsPerPage: 8
         }
-        this.handleDelete = this.handleDelete.bind(this);
         this.checkIfAdmin = this.checkIfAdmin.bind(this);
         this.redirect = this.redirect.bind(this);
+        this.initialDrawCards = this.initialDrawCards.bind(this);
+        this.drawPageButtons = this.drawPageButtons.bind(this);
     }
 
     //prints the add button if admin
@@ -39,7 +49,7 @@ export class List extends React.Component {
 
     //will call whenever new props are received
     componentDidUpdate(prevProps) {
-        console.log("Dog List Page received new props!");
+        console.log("Dog List Page updated and received new props!");
         // Typical usage (don't forget to compare props):
         if (this.props.isAdmin !== prevProps.isAdmin) {
             console.log("The new prop was different from the old one - new isAdmin: " + this.props.isAdmin)
@@ -48,6 +58,7 @@ export class List extends React.Component {
     }
 
     componentWillMount() {
+
         //checking if there are any command messages in the url params
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
@@ -57,9 +68,10 @@ export class List extends React.Component {
             }
 
         }
-        //setting the table placeholder everytime the component loads
-        //this.setState({ tableHolder: <div>Loading...</div> });
+
     }
+
+
 
     // Fetch the list on first mount
     componentDidMount() {
@@ -69,41 +81,11 @@ export class List extends React.Component {
     //deleting the command message when the page is changed
     componentWillUnmount() {
         this.setState({ commandMessage: "" });
+        console.log("Debug: list page is unmounting!");
     }
 
-    //will delete 
-    handleDelete(id) {
-        //TODO: this should be put in details once that is done
-        this.setState({ tableHolder: <div>Loading...</div> });
-        console.log("deleting dog with id " + id);
-        fetch("/api/dogs/delete/" + id, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.props.jwtToken
-            }
-        }).then(function (response) {
-            if (response.status === 403) {
-                //token is expired, sign out and redirect to login form
-                this.props.signOut();
-                this.setState({ redirectToLogin: true });
-                throw new Error("Bad response from server: token expired");
-            }
-            if (response.status >= 400) {
-                this.setState({ commandMessage: <div>Database error - sorry!</div> });
-                throw new Error("Bad response from server");
-            }
-            console.log(response);
-        }).then(() => {
-            console.log("successfully deleted dog with id: " + id);
-            this.setState({ commandMessage: <div style={{ color: 'red' }}>Dog was successfully deleted.</div> });
-            this.getList();
-        })
-            .catch(function (err) {
-                console.log(err);
-            });
 
-    }
+
 
 
     getList = () => {
@@ -113,58 +95,204 @@ export class List extends React.Component {
             .then(res => res.json())
             .then(list => this.setState({ list: list }))
             .then(() => {
-                this.setState({
-                    tableHolder: (
-                        <table className="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Breed</th>
-                                    <th>Gender</th>
-                                    <th>Age</th>
-                                    <th>Weight</th>
-                                    <th>Color</th>
-                                    <th></th>
-                                    {/*
-                                    <th>Update</th>
-                                    <th>Delete</th>
-                                    */}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {console.log(this.state.list)}
-                                {/* Render the list of items */}
-                                {this.state.list.map((item) => {
-                                    console.log(item);
-                                    return (
-                                        <tr key={item.dogid}>
-                                            <td>{item.dogid}</td>
-                                            <td>{item.dogname}</td>
-                                            <td>{item.dogbreed}</td>
-                                            <td>{item.doggender}</td>
-                                            <td>{item.dogage}</td>
-                                            <td>{item.dogweight}</td>
-                                            <td>{item.dogcolor}</td>
-                                            <td><Link to={this.props.match.path + "/details/" + item.dogid}><button className="btn btn-primary">Details</button></Link></td>
-                                            {/*
-                                            <td><Link to={this.props.match.path + "/update/" + item.dogid}><button className="btn btn-primary">Update</button></Link></td>
-                                            <td><button className="btn btn-primary" onClick={() => this.handleDelete(item.dogid)}>Delete</button></td>
-                                            */}
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>)
-                });
+
+                //setting the number of pages - the length of the list divided by the elements per page, then rounded up
+                let numberOfPages = Math.ceil(this.state.list.length / this.state.elementsPerPage);
+                console.log("number of pages: " + numberOfPages);
+                this.setState({ pageCount: numberOfPages });
+
+            })
+            .then(() => {
+                //put the dog entries in page elements
+                console.log("URL page number param = " + this.props.match.params.page);
+                this.initialDrawCards(1);
             });
         //}, 1000);
     }
 
+    /**
+     * Draws the cards to the page based on the current page number in the url
+     */
+    initialDrawCards() {
+        let currentPage = this.props.match.params.page;
+        let dogListIndex = 0;
+        if (currentPage !== 1 && currentPage !== undefined) {
+            dogListIndex = (currentPage - 1) * this.state.elementsPerPage;
+        }
+        const dogSubList = this.state.list.slice(dogListIndex, dogListIndex + this.state.elementsPerPage);
+        this.setState({
+            currentlySelectedDogs: dogSubList,
+        });
+
+    }
+
+
+    /**
+     * Draws the pagination number buttons, and sets which one is currently active
+     * @param {Number} numberOfPages 
+     */
+    drawPageButtons() {
+        let pageLinkElements = [];
+        for (var i = 1; i <= this.state.pageCount; i++) {
+            if (Number(this.props.match.params.page) === i || ((this.props.match.params.page === undefined) && i === 1)) {
+                pageLinkElements.push(<li className="page-item active"><Link onClick={this.redrawCards} className="page-link" to={'/dogs/' + i}>{i}</Link></li>);
+            }
+            else {
+                pageLinkElements.push(<li className="page-item"><Link onClick={this.redrawCards} className="page-link " to={'/dogs/' + i}>{i}</Link></li>);
+            }
+        }
+        return pageLinkElements;
+    }
+
+
+
+
+
+
+
+    /**
+     * Not actually a test, runs every render and draws dog cards to the screen based on the current page number in the URL
+     * @param {int} currentPage 
+     */
+    testDrawCard(currentPage) {
+
+        //dont draw anything until the holder is filled with db data
+        if (this.state.list.length === 0) {
+            return this.state.tableHolder;
+        }
+
+        let modCurrentPage = currentPage;
+
+
+
+        //grab new cards based on url, and draw them
+        let dogListIndex = 0;
+        //if one page one or no page given, set the index to count the first 8 dogs
+        if (currentPage !== 1 && currentPage !== undefined) {
+            dogListIndex = (currentPage - 1) * this.state.elementsPerPage;
+        }
+        else {
+            modCurrentPage = 1;
+        }
+        //create a sublist based on the current page and amount of cards allowed per page
+        const dogSubList = this.state.list.slice(dogListIndex, dogListIndex + this.state.elementsPerPage);
+        let delay = 0;
+        dogSubList.forEach(element => {
+            element.order = delay;
+            delay += 0.1;
+        });
+
+        //creates a custom style based on the given delay (in seconds)
+        function style(delay) {
+            return {
+                animationName: 'cardAppear',
+                animationTimingFunction: 'ease-in-out',
+                animationDuration: '0.3s',
+                animationDelay: delay + 's',
+                animationIterationCount: 1,
+                animationDirection: 'normal',
+                animationFillMode: 'forwards'
+            }
+        };
+
+
+        if (dogSubList.length !== 0) {
+            //this.disappearCards();
+            return (
+                <div>
+                    <nav aria-label="Page navigation">
+                        <ul className="pagination justify-content-center">
+                            <li className="page-item">
+                                <Link className="page-link" to={
+                                    () => {
+                                        if (Number(modCurrentPage) > 1) {
+                                            return "/dogs/" + (Number(modCurrentPage) - 1)
+                                        }
+                                    }
+                                }>&larr;</Link>
+                            </li>
+                            {this.drawPageButtons()}
+                            <li className="page-item">
+                                <Link className="page-link" to={
+                                    () => {
+                                        if (Number(modCurrentPage) < this.state.pageCount) {
+                                            return "/dogs/" + (Number(modCurrentPage) + 1)
+                                        }
+                                    }
+
+                                    //"/dogs/" + this.clampPage((Number(this.props.match.params.page) + 1), Number(this.state.pageCount))}
+                                }>&rarr;</Link>
+
+                            </li>
+                        </ul>
+                    </nav>
+                    <div className="list-card-holder">
+                        {dogSubList.map((item) => {
+                            let dogImage = "/images/default.jpg";
+                            if (item.dogimageref !== "" && item.dogimageref !== null) {
+                                dogImage = "/images/" + item.dogimageref
+                            }
+                            let age = item.dogage;
+                            if (Number(item.dogage) < 1) {
+                                age = "<1"
+                            }
+                            return (
+
+                                <div key={item.dogid} className="dog-card mb-5" style={style(item.order)}>
+
+                                    <div>
+                                        <img src={dogImage} alt={item.dogname + "'s profile photo"} />
+                                        <div className="mt-3">
+                                            <div><strong>{item.dogname}</strong></div>
+                                            <div>{item.doglocation}</div>
+                                            <div>{age} year old {item.doggender} {item.dogbreed}</div>
+                                            <Link to={"/dogs/details/" + item.dogid}>Details &#8594;</Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                </div>
+            )
+        }
+    }
+    makeCardsAppear() {
+        let cards = document.getElementsByClassName("dog-card");
+        for (var i = 0; i < cards.length; i++) {
+            cards.style.color = "blue";
+        }
+    }
+
+    /**
+     * Makes cards on screen disappear - TODO: have cards disppear on page change
+     */
+    disappearCards() {
+        let existingCards = document.getElementsByClassName("dog-card");
+        for (let element of existingCards) {
+            element.setAttribute("color", "blue")
+        }
+    }
+
+
+
+
+
+
+
     redirect(id) {
         this.setState({ redirectHolder: <Redirect to={this.props.match.path + "/dogs/details/" + id} /> });
     }
+
+
+
+
+
+
+
     render() {
+        let cards = this.state.tableHolder
         if (this.state.redirectToLogin === true) {
             return <Redirect to='/signin' />;
         }
@@ -177,10 +305,13 @@ export class List extends React.Component {
                     <p>Here is a list of all the dogs currently available.</p>
                     {this.checkIfAdmin()}
 
-                    {this.state.tableHolder}
+                    {this.testDrawCard(this.props.match.params.page)}
+
 
 
                 </div>
             );
     }
+
+   
 }

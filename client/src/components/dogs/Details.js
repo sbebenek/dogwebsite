@@ -12,7 +12,9 @@ export class Details extends React.Component {
         this.state = {
             id: this.props.match.params.id,
             isAdmin: parseInt(this.props.isAdmin),
-            pageContent: <div>Loading...</div>,
+            pageContent: (<div class="spinner-border text-success" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>),
             name: '',
             breed: '',
             gender: 'Male',
@@ -85,6 +87,9 @@ export class Details extends React.Component {
                         description: result[0].dogdescription,
                         location: result[0].doglocation
                     });
+                    if (Number(result[0].dogage) < 1) {
+                        this.setState({ age: "<1" });
+                    }
                     if (result[0].dogimageref !== null && result[0].dogimageref !== "") {
                         //if the dog has a reference image, use it
                         console.log("dog image ref found - " + result[0].dogimageref);
@@ -93,21 +98,27 @@ export class Details extends React.Component {
                     //setting the content of the page
                     this.setState({
                         pageContent: (
-                            <div>
-                                <div>
-                                    <img src={this.state.imageSource} alt="dog profile picture" />
-                                </div>
-                                <div><strong>Name: </strong>{this.state.name}</div>
-                                <div><strong>Gender: </strong>{this.state.gender}</div>
-                                <div><strong>Location: </strong>{this.state.location}</div>
-                                <div><strong>Breed: </strong>{this.state.breed}</div>
-                                <div><strong>Age: </strong>{this.state.age}</div>
-                                <div><strong>Weight (lbs): </strong>{this.state.weight}</div>
-                                <div><strong>Color: </strong>{this.state.color}</div>
-                                <br />
-                                <div>{this.state.description}</div>
+                            <div className="container">
+                                <div className="row">
+                                    <div className="details-image-column col-sm">
+                                        <div>
+                                            <img src={this.state.imageSource} className="details-image" alt="dog profile picture" />
+                                        </div>
+                                    </div>
+                                    <div className="details-info-column col-sm">
+                                        <h2>{this.state.name}</h2>
+                                        <div><strong>Gender: </strong>{this.state.gender}</div>
+                                        <div><strong>Location: </strong>{this.state.location}</div>
+                                        <div><strong>Breed: </strong>{this.state.breed}</div>
+                                        <div><strong>Age: </strong>{this.state.age} year(s) old</div>
+                                        <div><strong>Weight (lbs): </strong>{this.state.weight}</div>
+                                        <div><strong>Color: </strong>{this.state.color}</div>
+                                        <br />
+                                        <div className="mb-3">{this.state.description}</div>
 
-                                {this.checkIfAdmin()}
+                                        {this.checkIfAdmin()}
+                                    </div>
+                                </div>
                             </div>
                         )
                     })
@@ -124,25 +135,31 @@ export class Details extends React.Component {
         console.log("is user admin - " + this.state.isAdmin);
         if (this.state.isAdmin === 1) {
             console.log("user is admin!");
-            this.setState({deleteButtonHolder: <button className="btn btn-danger" onClick={() => {this.handleDelete(this.state.id)}}>
-            Delete
-        </button>});
+            this.setState({
+                deleteButtonHolder: <button className="btn btn-danger" onClick={() => { this.handleDelete(this.state.id) }}>
+                    Delete
+        </button>
+            });
             return (<div>
                 <Link to={"/dogs/update/" + this.state.id}><button className="btn btn-warning">Update</button></Link>
                 <Link to={"/dogs/changeimage/" + this.state.id}><button className="btn btn-info">Change Image</button></Link>
                 <button className="btn btn-danger" onClick={this.handleShow}>Delete</button>
 
-                
+
 
             </div>);
         }
         else return '';
     }
 
-    
+
     handleDelete(id) {
         //TODO: this should be put in details once that is done
-        this.setState({ tableHolder: <div>Loading...</div> });
+        this.setState({
+            tableHolder: (<div class="spinner-border text-success" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>)
+        });
         console.log("deleting dog with id " + id);
         fetch("/api/dogs/delete/" + id, {
             method: 'DELETE',
@@ -188,7 +205,7 @@ export class Details extends React.Component {
         return (
             <div>
                 {this.state.redirectHolder}
-                <Link to="/dogs"><button className="btn btn-sm btn-light">Go Back</button></Link>
+                <Link to="/dogs"><button className="btn btn-sm btn-light">&larr; Go Back</button></Link>
                 {this.state.commandPanel}
                 <h2>Details</h2>
                 {this.state.pageContent}
