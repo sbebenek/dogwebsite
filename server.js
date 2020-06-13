@@ -24,6 +24,7 @@ app.use('/public', express.static(path.join(__dirname,'/client/public')));
 
 //MYSQL CONNECTION DONE HERE - source https://www.youtube.com/watch?v=xn9ef5pod18&list=LLi27Shmiim3B-lLFh8XjLTQ&index=2
 //database connection is made upon server start
+//createPool allows for automatic and dynamic connection opening/closing
 var mysqlConnection = mysql.createPool({
     /* local connection string
     host: "localhost",
