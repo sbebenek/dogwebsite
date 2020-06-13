@@ -24,7 +24,7 @@ app.use('/public', express.static(path.join(__dirname,'/client/public')));
 
 //MYSQL CONNECTION DONE HERE - source https://www.youtube.com/watch?v=xn9ef5pod18&list=LLi27Shmiim3B-lLFh8XjLTQ&index=2
 //database connection is made upon server start
-var mysqlConnection = mysql.createConnection({
+var mysqlConnection = mysql.createPool({
     /* local connection string
     host: "localhost",
     user: "root",
@@ -39,7 +39,7 @@ var mysqlConnection = mysql.createConnection({
    multipleStatements: true
 });
 
-mysqlConnection.connect((err) => {
+mysqlConnection.getConnection((err) => {
     if (!err) {
         console.log("Successfully connected to dogwebsite database");
     }
