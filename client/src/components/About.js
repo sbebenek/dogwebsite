@@ -24,7 +24,7 @@ export class About extends React.Component {
                 </p>
 
                 <p>
-                    With more time to develop this website, I'd liked to include personal user accounts, multiple images per dog, internal messaging, and shelter pages.
+                    With more time to develop this website, I'd liked to include a responsive design, personal user accounts, multiple images per dog, internal messaging, and shelter pages.
                 </p>
                 <p className="mb-5">Sam's portfolio website can be found <a href="http://sambebenek.com" target="_blank">here</a>.</p>
                 <div className="d-flex justify-content-center">
