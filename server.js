@@ -25,11 +25,18 @@ app.use('/public', express.static(path.join(__dirname,'/client/public')));
 //MYSQL CONNECTION DONE HERE - source https://www.youtube.com/watch?v=xn9ef5pod18&list=LLi27Shmiim3B-lLFh8XjLTQ&index=2
 //database connection is made upon server start
 var mysqlConnection = mysql.createConnection({
+    /* local connection string
     host: "localhost",
     user: "root",
     password: "root",
     database: "dogwebsite",
     multipleStatements: true
+    */
+   host: "us-cdbr-east-05.cleardb.net",
+   user: "bc4b59c8dae429",
+   password: "04f9a378",
+   database: "heroku_63a39bb59a8dbcf",
+   multipleStatements: true
 });
 
 mysqlConnection.connect((err) => {
@@ -529,7 +536,9 @@ function userIsAdmin(req) {
 }
 
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 app.listen(port);
 
-console.log('Express App is running and listening on port ' + port);
+//old non-heroku way
+//console.log('Express App is running and listening on port ' + port);
+console.log(`Express App is running and listening on port ${port}`);
